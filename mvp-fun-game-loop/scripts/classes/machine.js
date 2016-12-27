@@ -1,31 +1,26 @@
 
 class Machine {
-    // TODO: pass in the other attributes.
-    constructor(name) {
+    constructor(m) {
         // TODO: use uuid package instead:
         this.id = Math.floor((Math.random() * 100000) + 1);
-        this.name = name;
+        this.name = m.name;
         this.isRental = false;
-        this.costToPurchase = 1000;
+        this.costToPurchase = m.cost;
 
         this.maintLevel = 100;
-        this.maintFactor = 1;
+        this.maintFactor = m.maintFactor;
 
-        this.workoutLength = 1000; // Minutes it takes a customer to workout on machine
+        this.workoutLength = m.workoutLength; // Minutes it takes a customer to workout on machine
 
-        this.maxConcurrentCustomers = 1; // Some 'machines' like yoga_room and free_weights can have lots of simulaneous occupants
+        this.maxConcurrentCustomers = m.maxConcurrentCustomers; // Some 'machines' like yoga_room and free_weights can have lots of simulaneous occupants
         this.currentCustomers = []; // Customers currently using this machine.
 
-        this.positionInGym = {
-            x: 100,
-            y: 100
-        };
-        this.dimensions = {
-            x: 10,
-            y: 10
-        };
+        this.positionInGym = m.pos;
+        this.dimensions = m.dimensions;
 
         this.customerLine = [];
+
+        this.sprite = m.sprite;
     }
 
     isLineEmpty() {
@@ -71,6 +66,24 @@ class Machine {
     }
 
     isCustomerFirstInLine(c) {
-        return this.customerLine[0].id === c.id;
+        return this.getCustomerPosInLine(c)  === 0;
+    }
+
+    getCustomerPosInLine(c) {
+        for (var i = 0; i < this.customerLine.length; i++) {
+            if (this.customerLine[i].id === c.id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // UI helpers:
+    static onDragMachineStop(m) {
+        // Move the machine to the new location of the sprite:
+        this.positionInGym = {
+            x: m.x,
+            y: m.y
+        };
     }
 }

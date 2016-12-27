@@ -9,7 +9,7 @@ class Gym {
         this.closingTime = 1380;
 
         // clock keeps track of the current in-game time.
-        this.clock = new Clock(1375, new Date(2005, 0, 1));
+        this.clock = new Clock(358, new Date(2005, 0, 1));
 
         // machines is a list of all of the machines in this gym.
         this.machines = machines;
@@ -26,28 +26,55 @@ class Gym {
         return time >= this.openingTime && time < this.closingTime;
     }
 
+    getCash() {
+        return this.cash;
+    }
+
     getTime() {
         return this.clock.getTime();
+    }
+
+    getTimeFormatted() {
+        return this.clock.getTimeFormatted();
     }
 
     getDate() {
         return this.clock.getDate();
     }
 
+    addToMachines(m) {
+        this.machines.push(m);
+    }
+
     // findMachineToQueue will find the machine for the user to start lining up in front of.
     // If there is not a working instance of that machine in this gym then null is returned.
     findMachineForWorkout(machineName) {
+        // TODO: Pure random is a little silly.
+        //       (Lol @ modern load balancers! :P)
+        //       We should favor ones that are empty or near empty first.
 
-        // TODO: Right now this just grabs the first machine of the same type it finds.
-        // This will never use the other machines. 
-        // 
-        // Make this a round-robin random selection of all of the avaiable machines instead.
-        for (var i = 0; i < this.machines.length; i++) {
-            var m = this.machines[i];
+        // Basic round robin selection algo.
+        if (!machineName) {
+            return null;
+        }
+
+        var machinesToChooseFrom = _.filter(this.machines, (m) => {
             if (m.name === machineName) {
                 return m;
             }
+        });
+
+        var len = machinesToChooseFrom.length;
+
+        if (len === 0) {
+            return null;
         }
-        return null;
+
+        if (len === 1) {
+            return machinesToChooseFrom[0];
+        }
+
+        var i = Math.floor((Math.random() * len) + 1);
+        return machinesToChooseFrom[i-1];
     }
 }

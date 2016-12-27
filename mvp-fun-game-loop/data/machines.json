@@ -1,0 +1,37 @@
+{
+    "benchpress": {
+        "name": "benchpress",
+        "cost": 500,
+        "workoutLength": 500,
+        "maxConcurrentCustomers": 1,
+        "dimensions": {
+            "x": 40,
+            "y": 10
+        },
+        "maintFactor": 1
+    },
+
+    "freeweights" : {
+        "name": "freeweights",
+        "cost": 10000,
+        "workoutLength": 1000,
+        "maxConcurrentCustomers": 10,
+        "dimensions": {
+            "x": 1000,
+            "y": 300
+        },
+        "maintFactor": 1
+    },
+
+    "treadmill": {
+        "name": "treadmill",
+        "cost": 1000,
+        "workoutLength": 1000,
+        "maxConcurrentCustomers": 1,
+        "dimensions": {
+            "x": 40,
+            "y": 10
+        },
+        "maintFactor": 3
+    }
+}

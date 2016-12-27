@@ -9,16 +9,25 @@ class Customer {
             weekend_warrior : {
                 routine: [
                     'treadmill',
-                    'freeweights'
+                    'treadmill',
+                    'freeweights',
+                    'benchpress'
                 ],
                 days_of_week: [0, 6]    // days_of_week is an array of days this customerType works out.
             },
             body_builder_barbell: {
                 routine: [
                     'treadmill',
-                    'barbell_bench'
+                    'treadmill',
+                    'benchpress'
                 ],
                 days_of_week: [1, 2, 3, 4, 5]
+            },
+            how_much_can_you_bench_bro: {
+                routine: [
+                    'benchpress'
+                ],
+                days_of_week: [1, 2, 3, 4, 5, 6, 0]
             }
         };
     };
@@ -70,7 +79,14 @@ class Customer {
 
         // workoutTime is the minutes into the day that this customer goes to the gym
         this.workoutTime = 370;  // TODO: Randomize this / make the base part of CustomerType
+
+        // Ui:
+        this.movementSpeed = 400; // n pixels per second.
         this.sprite = sprite;
+        // destinationPos is an obect that contains the x,y coords where this customer wishes to move to.
+        this.destinationPos = null;
+        this.tween = null;
+
 
         // meters represents all of the customer's current internal levels:
         this.meters = new CustomerMeters();
@@ -99,6 +115,11 @@ class Customer {
         if (this.isTimeForWorkout(gym)) {
             console.log("[DEBUG] " + this.name + " is going to gym");
             this.resetCustomerSession();
+            // Move the sprite to the center of the gym.
+            this.destinationPos = {
+                x: 200, // TODO: Make this the entrance area.
+                y: 200
+            };
             this.state.goToGym();
         }
     }
@@ -140,6 +161,11 @@ class Customer {
             console.log("[DEBUG] " + this.name + " is going to machine: " + m.name);
             m.addCustomerToLine(this);
             this.currentSession.currentMachine = m;
+            // Set the destination of the customer to this machine.
+            this.destinationPos = {
+                x: m.sprite.x,
+                y: m.sprite.y - (this.sprite.height)
+            };
             this.state.queueUpForMachine();
         } else {
             console.log("[DEBUG] " + this.name + " cannot find a " + nextMachine + " machine");
@@ -156,10 +182,26 @@ class Customer {
 
         if (curM.isCustomerFirstInLine(this) && curM.canFirstCustomerInLineUseMachine()) {
             curM.addNextCustomerToMachineUsers();
+            // Move to machine:
+            this.destinationPos = {
+                x: curM.sprite.x,
+                y: curM.sprite.y - (this.sprite.height)
+            };
             this.state.startUsingMachine();
         } else {
+            // TODO: I should only set this once. Right now I am setting it every frame. Yikes!
+            if (!this.destinationPos) {
+                // Move to the correct position in line.
+                var posInLine = curM.getCustomerPosInLine(this);
+                this.destinationPos = {
+                    x: curM.sprite.x,
+                    y: curM.sprite.y + (this.sprite.height * (posInLine + 1))
+                };
+            }
+
             // TODO: bored++
             console.log("[DEBUG] " + this.name + " is waiting in line for " + curM.name);
+            // POST MVP TODO: Shift a little to indicate getting impatient with waiting in line.
         }
     }
 
@@ -178,6 +220,17 @@ class Customer {
     }
 
     processShoweringState() {
+        // TODO: Move them to the shower.
+        // See below notes.
+        this.destinationPos = {
+            x: 500,
+            y: 25
+        };
+
+        // TODO: If there is no shower then leave a negative thought and leave.
+        // NOTE: A shower should be another 'machine' with a large number of concurrentCustomers.
+        // This state will specifically look for a shower machine since it has it's own state / thought.
+
         if (this.meters.dirty === 0) {
             console.log("[DEBUG] " + this.name + " has finished showering. Going home.");
             this.state.leaveGym();
@@ -201,6 +254,10 @@ class Customer {
         this.lastWorkoutDate = gym.getDate();
         this.currentSession = new GymSession(gym.getDate());
         this.meters = new CustomerMeters();
+    }
+
+    isInGym() {
+        return !this.state.is('home');
     }
 
     // TODO: this should be in customerSession.js:
