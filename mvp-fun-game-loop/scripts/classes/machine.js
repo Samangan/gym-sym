@@ -23,8 +23,14 @@ class Machine {
         this.sprite = m.sprite;
     }
 
+    static getMaxLineLength() { return 1; }
+
     isLineEmpty() {
         return this.customerLine.length === 0;
+    }
+
+    isLineMaxCap() {
+      return this.customerLine.length >= Machine.getMaxLineLength();
     }
 
     addCustomerToLine(c) {
@@ -75,8 +81,9 @@ class Machine {
                 return i;
             }
         }
-        return -1;
+        return -100;
     }
+
 
     // UI helpers:
     static onDragMachineStop(m) {

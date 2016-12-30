@@ -8,6 +8,7 @@ class GymSession {
         // number of machines in their workout routine.
         // (See: customerTypes() object for the routine for each customerType)
         this.numMachinesUsedInSession = 0;
+        this.numMachinesSkipped = 0;
 
         this.currentMachine = null;
         this.currentMachineUsageTime = 0;

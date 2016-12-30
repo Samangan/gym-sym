@@ -1,6 +1,12 @@
 
 class Customer {
+    static getRandomCustomerType() {
+        var types = ['weekend_warrior', 'body_builder_barbell', 'how_much_can_you_bench_bro'];
+        var i = Math.floor((Math.random() * types.length));
+        return types[i];
+    }
 
+    // TODO: customerTypes should be a json file like machines that we read in at game startup.
     // customerTypes() outputs a map of the customerType string
     // to the list of machines that the customer will use in a complete
     // workout session.
@@ -8,7 +14,6 @@ class Customer {
         return {
             weekend_warrior : {
                 routine: [
-                    'treadmill',
                     'treadmill',
                     'freeweights',
                     'benchpress'
@@ -18,7 +23,6 @@ class Customer {
             body_builder_barbell: {
                 routine: [
                     'treadmill',
-                    'treadmill',
                     'benchpress'
                 ],
                 days_of_week: [1, 2, 3, 4, 5]
@@ -27,7 +31,7 @@ class Customer {
                 routine: [
                     'benchpress'
                 ],
-                days_of_week: [1, 2, 3, 4, 5, 6, 0]
+                days_of_week: [2, 4, 6]
             }
         };
     };
@@ -35,8 +39,7 @@ class Customer {
     constructor(
         name,
         customerType,
-        membershipCost,
-        billingFrequency,
+        timeWorkoutStarts,
         sprite
     ) {
         // TODO: use uuid package instead:
@@ -44,20 +47,29 @@ class Customer {
         this.name = name;
         this.dateJoined = new Date();
         this.customerType = customerType;
-        this.billingFrequency = billingFrequency;
-        this.membershipCost = membershipCost;
         this.lastPaymentDate = null;
-        this.propensityToCancel = 0;
+
+        // TODO: make clean / dirty environment thoughts
         this.thoughts = {
             happy: {
-                'no_lines': 0
+                'no_lines': 0,
+                'workout_finished': 0
             },
             sad: {
-                'workout_not_finished': 0,
                 'long_lines_suck': 0,
+                'workout_not_finished': 0,
                 'machine_not_available': 0
             }
         };
+
+        // thoughtBubbles is a queue of thoughts
+        // that will be popped off and displayed to the user by game.js render loop.
+        this.thoughtBubbles = [];
+        this.isThinking = false;
+        this.currentThought;
+        this.currentThoughtSprite;
+
+
 
         // The customer state machine: (TODO: Make a diagram here)
         this.state = StateMachine.create({
@@ -67,6 +79,7 @@ class Customer {
                 { name: 'lookForMachine', from: ['idle', 'working_out'], to: 'looking_for_machine' },
                 { name: 'queueUpForMachine', from: 'looking_for_machine', to: 'waiting_in_line' },
                 { name: 'startUsingMachine',  from: 'waiting_in_line',  to: 'working_out' },
+                { name: 'waitForLinesToEmpty', from: 'looking_for_machine', to: 'idle' },
                 { name: 'getBoredWaitingForMachine',  from: 'waiting_in_line',  to: 'idle' },
                 { name: 'startSocializing',  from: 'idle',  to: 'socializing' },
                 { name: 'stopSocializing',  from: 'socializing',  to: 'idle' },
@@ -78,23 +91,71 @@ class Customer {
         this.lastWorkoutDate = null;
 
         // workoutTime is the minutes into the day that this customer goes to the gym
-        this.workoutTime = 370;  // TODO: Randomize this / make the base part of CustomerType
+        this.workoutTime = timeWorkoutStarts;
 
         // Ui:
-        this.movementSpeed = 400; // n pixels per second.
+        // defaultMovementSpeed is  measured in `n pixels per second`.
+        this.defaultMovementSpeed = 300;
+        this.currentMovementSpeed = this.defaultMovementSpeed;
         this.sprite = sprite;
         // destinationPos is an obect that contains the x,y coords where this customer wishes to move to.
         this.destinationPos = null;
+        this.isMoving = false;
         this.tween = null;
-
+        this.removeFromGym = false;
 
         // meters represents all of the customer's current internal levels:
         this.meters = new CustomerMeters();
     }
 
+    delete() {
+        this.removeFromGym = true;
+    }
+
+    addThought(sentiment, thought) {
+        console.log("[DEBUG] " + this.name + " has new thought: " + thought);
+        this.thoughts[sentiment][thought]++;
+        this.thoughtBubbles.push(thought);
+    }
+
+    getTotalHappiness() {
+        var h = 1; // TODO: Store this base hapiness somewhere.
+        for (var thought in this.thoughts.happy) {
+            h += this.thoughts.happy[thought];
+        }
+
+        for (var thought in this.thoughts.sad) {
+            h -= this.thoughts.sad[thought];
+        }
+
+        return h;
+    }
+
+    removeThoughtBubble() {
+        if (this.currentThoughtSprite) {
+            this.currentThoughtSprite.destroy();
+        }
+        this.isThinking = false;
+        this.currentThought = null;
+    }
+
+    moveToXY(x,y) {
+        this.isMoving = true;
+        this.destinationPos = {
+          x: x,
+          y: y
+        }
+    }
+
+    finishMovement() {
+        this.isMoving = false;
+        this.destinationPos = null;
+        this.currentMovementSpeed = this.defaultMovementSpeed;
+    }
+
     processStep(gym) {
         if (this.state.is('home')) {
-            this.processHomeState();
+            this.processHomeState(gym);
         } else if (this.state.is('idle')) {
             this.processIdleState();
         } else if (this.state.is('looking_for_machine')) {
@@ -111,15 +172,20 @@ class Customer {
     }
 
     // process*State() functions:
-    processHomeState() {
+    processHomeState(gym) {
+        if (this.removeFromGym) {
+            console.log("[DEBUG] " + this.name + ' is cancelling their subscription');
+            this.sprite.destroy();
+            gym.customers = _.without(gym.customers, _.findWhere(gym.customers, {
+                id: this.id
+            }));
+        }
+
         if (this.isTimeForWorkout(gym)) {
             console.log("[DEBUG] " + this.name + " is going to gym");
             this.resetCustomerSession();
             // Move the sprite to the center of the gym.
-            this.destinationPos = {
-                x: 200, // TODO: Make this the entrance area.
-                y: 200
-            };
+            //this.moveToXY(400,400);
             this.state.goToGym();
         }
     }
@@ -132,45 +198,67 @@ class Customer {
 
         if (!gym.isOpen()) {
             console.log("[DEBUG] Gym is closing. " + this.name + " is going home");
-            this.thoughts.sad.workout_not_finished++;
+            this.addThought('sad', 'workout_not_finished');
             return this.state.leaveGym();
         }
 
         if (this.currentSession.isMaxSessionTimeReached(gym.getDate())) {
             console.log("[DEBUG] " + this.name + " reached max workout session time and is going home");
-            this.thoughts.sad.workout_not_finished++;
+            this.addThought('sad', 'workout_not_finished');
             return this.state.leaveGym();
         }
 
-        // Let's start looking for a machine to use:
-        return this.state.lookForMachine();
+        if (this.meters.boredom > 0 && this.meters.screenTouch > 0) {
+            // TODO: Make screentouching a state as well.
+            // TODO: Animate the customer looking at their phone. Or make them get water or something.
+            console.log("[DEBUG] " + this.name + " is screen touching");
+            var sign = Math.floor(Math.random()*2) == 1 ? 1 : -1;
+            if (!this.isMoving) {
+                this.currentMovementSpeed = 100; // TODO: make this a param of moveToXY()
+                this.moveToXY(
+                  this.sprite.x + sign * (Math.floor(Math.random()*300) + 1),
+                  this.sprite.y + sign * ( Math.floor(Math.random()*300) + 1)
+                );
+            } else {
+              this.meters.boredom--;
+            }
+          } else {
+          // Let's start looking for a machine to use:
+          return this.state.lookForMachine();
+        }
     }
 
     processLookingForMachineState() {
         if (this.isWorkoutOver()) {
             console.log("[DEBUG] Workout over. " + this.name + " is going to shower.");
+            if (this.currentSession.numMachinesSkipped === 0) {
+                this.addThought('happy', 'workout_finished'); // FUN_NOTE: THis might make the game too easy.
+            }
             return this.state.endWorkout();
         }
 
         // Workout is not over; look for a machine to use.
         var machines = Customer.customerTypes()[this.customerType].routine;
         var nextMachine =  machines[this.currentSession.numMachinesUsedInSession];
-        var m = gym.findMachineForWorkout(nextMachine);
+        var r = gym.findMachineForWorkout(nextMachine);
 
-        if (m !== null) {
+        if (r.machine !== null && r.status === 'FOUND') {
+            var m = r.machine;
             console.log("[DEBUG] " + this.name + " is going to machine: " + m.name);
             m.addCustomerToLine(this);
             this.currentSession.currentMachine = m;
-            // Set the destination of the customer to this machine.
-            this.destinationPos = {
-                x: m.sprite.x,
-                y: m.sprite.y - (this.sprite.height)
-            };
             this.state.queueUpForMachine();
+        } else if (r.status === 'FULL_LINE') {
+            // Machine was found but the line is full.
+            this.addThought('sad', 'long_lines_suck');
+            this.meters.boredom+= 80;
+            console.log("[DEBUG] all lines for " + nextMachine + " are currently full");
+            this.state.waitForLinesToEmpty();
         } else {
             console.log("[DEBUG] " + this.name + " cannot find a " + nextMachine + " machine");
             // There is not currently a working machine of this type in the gym.
-            this.thoughts.sad.machine_not_available++;
+            this.currentSession.numMachinesSkipped++;
+            this.addThought('sad', 'machine_not_available');
             // Try the next machine in the routine:
             this.currentSession.numMachinesUsedInSession++;
         }
@@ -183,23 +271,22 @@ class Customer {
         if (curM.isCustomerFirstInLine(this) && curM.canFirstCustomerInLineUseMachine()) {
             curM.addNextCustomerToMachineUsers();
             // Move to machine:
-            this.destinationPos = {
-                x: curM.sprite.x,
-                y: curM.sprite.y - (this.sprite.height)
-            };
+            this.moveToXY(
+                curM.sprite.x,
+                curM.sprite.y - (this.sprite.height) / 1.5
+            );
             this.state.startUsingMachine();
         } else {
-            // TODO: I should only set this once. Right now I am setting it every frame. Yikes!
-            if (!this.destinationPos) {
+            if (!this.isMoving) {
                 // Move to the correct position in line.
                 var posInLine = curM.getCustomerPosInLine(this);
-                this.destinationPos = {
-                    x: curM.sprite.x,
-                    y: curM.sprite.y + (this.sprite.height * (posInLine + 1))
-                };
+                this.moveToXY(
+                    curM.sprite.x,
+                    curM.sprite.y + (this.sprite.height * (posInLine + 1))
+                );
             }
 
-            // TODO: bored++
+            this.meters.boredom++;
             console.log("[DEBUG] " + this.name + " is waiting in line for " + curM.name);
             // POST MVP TODO: Shift a little to indicate getting impatient with waiting in line.
         }
@@ -220,12 +307,11 @@ class Customer {
     }
 
     processShoweringState() {
-        // TODO: Move them to the shower.
+        // TODO: Move them to the shower 'machine' once it is made.
         // See below notes.
-        this.destinationPos = {
-            x: 500,
-            y: 25
-        };
+        if (!this.isMoving) {
+            this.moveToXY(500, 25);
+        }
 
         // TODO: If there is no shower then leave a negative thought and leave.
         // NOTE: A shower should be another 'machine' with a large number of concurrentCustomers.
@@ -251,7 +337,7 @@ class Customer {
     // End of process*State() functions
 
     resetCustomerSession() {
-        this.lastWorkoutDate = gym.getDate();
+        this.lastWorkoutDate = new Date(gym.getDate());
         this.currentSession = new GymSession(gym.getDate());
         this.meters = new CustomerMeters();
     }

@@ -25,7 +25,7 @@
 
     "treadmill": {
         "name": "treadmill",
-        "cost": 1000,
+        "cost": 3000,
         "workoutLength": 1000,
         "maxConcurrentCustomers": 1,
         "dimensions": {

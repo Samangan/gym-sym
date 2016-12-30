@@ -12,11 +12,14 @@ class Clock {
     }
 
     processStep() {
+        var nextDay = false;
+
         if (this.currentTime === this.MINUTES_IN_DAY - 1) {
             this.currentDate.setDate(this.currentDate.getDate() + 1);
+            nextDay = true;
         }
-
         this.currentTime = (this.currentTime + 1) % this.MINUTES_IN_DAY;
+        return nextDay;
     }
 
     getTime() {
