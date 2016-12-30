@@ -25,7 +25,7 @@ class Customer {
                     'treadmill',
                     'benchpress'
                 ],
-                days_of_week: [1, 2, 3, 4, 5]
+                days_of_week: [1, 3, 5]
             },
             how_much_can_you_bench_bro: {
                 routine: [
@@ -68,8 +68,6 @@ class Customer {
         this.isThinking = false;
         this.currentThought;
         this.currentThoughtSprite;
-
-
 
         // The customer state machine: (TODO: Make a diagram here)
         this.state = StateMachine.create({
@@ -173,6 +171,11 @@ class Customer {
 
     // process*State() functions:
     processHomeState(gym) {
+        if (this.sprite) {
+            this.sprite.destroy();
+            this.sprite = null;
+        }
+
         if (this.removeFromGym) {
             console.log("[DEBUG] " + this.name + ' is cancelling their subscription');
             this.sprite.destroy();
@@ -184,6 +187,8 @@ class Customer {
         if (this.isTimeForWorkout(gym)) {
             console.log("[DEBUG] " + this.name + " is going to gym");
             this.resetCustomerSession();
+            // Create sprite:
+            this.sprite = customerGroup.create(game.world.width / 2, game.world.height, 'customer-1');
             // Move the sprite to the center of the gym.
             //this.moveToXY(400,400);
             this.state.goToGym();
@@ -306,6 +311,11 @@ class Customer {
         }
     }
 
+
+    // TODO: Should shower just be another machine?
+    // * If there is a maximum amount of people in the shower then they have to wait in line for the shower as well.
+    //   That means that we need to go through the same states as with the machines. That could work fine. Or we could just say
+    //   that the shower fits infinite people, which is dumb. let;s just git rid of showers.
     processShoweringState() {
         // TODO: Move them to the shower 'machine' once it is made.
         // See below notes.

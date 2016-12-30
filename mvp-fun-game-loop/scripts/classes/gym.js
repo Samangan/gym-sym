@@ -23,7 +23,7 @@ class Gym {
         this.fame = 1;
 
         // how many dollars per day it costs to use the gym.
-        this.membershipCost = 3;
+        this.membershipCost = 5;
 
     }
 
@@ -62,17 +62,12 @@ class Gym {
     // TODO: Implement purchasing different types of advertisements (like in gamedevtycoon)
     //       which will increase the Fame variable for a short period of time.
     acquireNewCustomers() {
-
-        // TODO: Improve this formula:
-        // * A problem:
-        // * * If I use average happiness some people in a large gym can be really unhappy but never leave.
-
-        // TODO: Major? problem:
+        // TODO: Potential problem:
         // * How do I address stagnation?
         // * * You can just stop building machines and eventually the customers will stagnate.
         //     Is that ok?
         // * I think introducing employees will make this more pressing to get more customers.
-        var numNewCustomers = Math.round(this.fame * (this.getAvgCustomerHappiness() + 1) - this.membershipCost/2);
+        var numNewCustomers = Math.round(this.fame * (this.getAvgCustomerHappiness() + 1) - this.membershipCost/10);
 
         console.log('[DEBUG] newCustomers today: ' + numNewCustomers);
         // if numNewCustomers is negative then remove that many customers (most unhappy first) instead of adding new customers.
@@ -96,13 +91,13 @@ class Gym {
                 console.log(customerType);
 
                 // TODO: dont make the sprite until they are going to the gym (This is just for debugging)
-                var sprite = customerGroup.create(32 + i * 80, game.world.height - 150, 'customer-1');
+                //var sprite = customerGroup.create(32 + i * 80, game.world.height - 150, 'customer-1');
 
                 this.customers.push(new Customer(
                     'customer-'+this.customers.length,
                     customerType,
                     Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime,
-                    sprite
+                    null
                 ));
                 this.fame+=0.1;
                 // TODO: There should be a tikcer message saying that people joined the gym.

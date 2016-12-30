@@ -9,10 +9,7 @@ var game = new Phaser.Game(1024, 768, Phaser.AUTO, '', { preload: preload, creat
 // Show debug information in the game itself:
 var debug = true;
 
-// Current todo:
-// * 
-
-
+// * Implement collision / pathing for customers.
 
 //Latest todo:
 // * pathing + collision
@@ -43,7 +40,6 @@ var debug = true;
 // * * * *
 // * Ideas:
 // * * Different tiers of the same equipment: Ex a faster treadmill that lets people work out faster but it costs more.
-
 
 var gym;
 
@@ -84,6 +80,7 @@ function preload() {
     //game.load.image('wall-tile', 'assets/map/wall.png');
     game.load.spritesheet('gym-tiles-spritesheet', 'assets/map/gridtiles.png', 32, 32);
     game.load.image('gym-tiles', 'assets/map/gridtiles.png');
+    game.load.image('grass-tile', 'assets/map/grasstile.png');
 
     // preload machines sprites:
     game.load.image('treadmill', 'assets/machines/treadmill.png');
@@ -118,6 +115,9 @@ function create() {
     ui.gymLayer.scrollFactorX = 0.5;
     ui.gymLayer.scrollFactorY = 0.5;
 
+    // Pre-populate the map with floor tiles:
+    ui.map.fill(ui.tilesetMap.floor, 0, 0, game.width, game.height, 'level1');
+
     // Enable collision only for the wall tiles: (TODO: Not working right now.)
     ui.map.setCollision(ui.tilesetMap.wall);
 
@@ -131,7 +131,7 @@ function create() {
 
     // TODO: Make a function to do each of these steps:
     // Init gym:
-    gym = new Gym(15000);
+    gym = new Gym(20000);
 
     // Every 1/10 seconds is 1 in-game minute:
     game.time.events.loop(Phaser.Timer.SECOND / 100, gym.tickClock, gym);
@@ -210,8 +210,8 @@ function render() {
 
     for (var i = 0; i < gym.customers.length; i++) {
         var c = gym.customers[i];
-        if (debug) {
-            var style = { font: "10px Arial", fill: "#f922d9", wordWrap: true, wordWrapWidth: c.sprite.width, align: "center", backgroundColor: "#fffff" };
+        if (debug && c.sprite) {
+            var style = { font: "10px Arial", fill: "#f9542f4", wordWrap: true, wordWrapWidth: c.sprite.width, align: "center" };
             if (c.debugText) {
                 c.debugText.destroy();
             }
@@ -233,8 +233,7 @@ function render() {
     }
 }
 
-// TODO: Put the throw away ui code in some other file:
-// NOTE: This is uber hax just to allow me to test the game loop.
+// TODO: Actually implement pause/resume/etc.
 function pauseTime() {
     // remove game clock:
     game.time.events.removeAll();
@@ -249,10 +248,11 @@ function resumeTime() {
     ui.pauseTimeBtn = game.add.button(game.world.width - 550, 5, 'pause-time-btn', pauseTime, this);
 }
 
-
+// TODO: Put the throw away ui code in some other file:
+// NOTE: This is uber hax just to allow me to test the game loop.
 function renderUI() {
     // Render Gym clock:
-    var style = { font: "20px Arial", fill: "#f922d9", wordWrap: false, align: "center", backgroundColor: "#fffff" };
+    var style = { font: "20px Arial", fill: "#98f700", wordWrap: false, align: "center"};
 
     // TODO: just change the text instead of destroying these each time lol.
     if (ui.gymClock) {
@@ -269,8 +269,8 @@ function renderUI() {
 
     if (gym.dailyBalanceQueue.length > 0) {
         var balance = gym.dailyBalanceQueue.pop();
-        var posStyle = { font: "20px Arial", fill: "#44e20b", wordWrap: false, align: "center", backgroundColor: "#fffff" };
-        var negStyle = { font: "20px Arial", fill: "#f70254", wordWrap: false, align: "center", backgroundColor: "#fffff" };
+        var posStyle = { font: "20px Arial", fill: "#44e20b", wordWrap: false, align: "center" };
+        var negStyle = { font: "20px Arial", fill: "#f70254", wordWrap: false, align: "center" };
 
         if (balance > 0) {
             ui.dailyBalanceTicker = game.add.text(game.world.width - 100, 20, "+ $ " + balance + ".00", posStyle);
@@ -321,7 +321,7 @@ function openBuildStore() {
     // For now I am going to just use a debug rectangle, lol. Keep it programmer art for now!
     var background = game.add.sprite(100, 100, 'store-background');
 
-    var style = { font: "20px Arial", fill: "#f922d9", wordWrap: false, align: "center", backgroundColor: "#fffff" };
+    var style = { font: "20px Arial", fill: "#0a0a0a", wordWrap: false, align: "center" };
     var title = game.add.text(0, 0, 'Build Store', style);
     title.alignTo(background, Phaser.TOP_CENTER, 1);
 
@@ -366,7 +366,7 @@ function openMachineStore() {
     // For now I am going to just use a debug rectangle, lol. Keep it programmer art for now!
     var background = game.add.sprite(100, 100, 'store-background');
 
-    var style = { font: "20px Arial", fill: "#f922d9", wordWrap: false, align: "center", backgroundColor: "#fffff" };
+    var style = { font: "20px Arial", fill: "#f922d9", wordWrap: false, align: "center"};
     var title = game.add.text(0, 0, 'Machine Store', style);
     title.alignTo(background, Phaser.TOP_CENTER, 1);
 
