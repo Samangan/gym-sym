@@ -7,11 +7,13 @@
 var game = new Phaser.Game(1024, 768, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
 // Show debug information in the game itself:
-var debug = true;
+var debug = false;
 
 // * Implement collision / pathing for customers.
 
 //Latest todo:
+// * add more machines + more customerTypes
+// * * Make unique sprites for each customerType and each machine.
 // * pathing + collision
 // * show detail info of customer / machine on clicking.
 // * Implement employees (see below detailed notes)
@@ -40,6 +42,10 @@ var debug = true;
 // * * * *
 // * Ideas:
 // * * Different tiers of the same equipment: Ex a faster treadmill that lets people work out faster but it costs more.
+
+// TODO:
+// http://perplexingtech.weebly.com/game-dev-blog/using-states-in-phaserjs-javascript-game-developement
+
 
 var gym;
 
@@ -86,6 +92,7 @@ function preload() {
     game.load.image('treadmill', 'assets/machines/treadmill.png');
     game.load.image('benchpress', 'assets/machines/barbell.png');
     game.load.image('freeweights', 'assets/machines/free_weights.png');
+    game.load.image('shower', 'assets/machines/shower.png');
 
     // preload customers sprites:
     game.load.spritesheet('customer-1', 'assets/customers/customer-1.png', 32, 48);
@@ -131,7 +138,7 @@ function create() {
 
     // TODO: Make a function to do each of these steps:
     // Init gym:
-    gym = new Gym(20000);
+    gym = new Gym(30000);
 
     // Every 1/10 seconds is 1 in-game minute:
     game.time.events.loop(Phaser.Timer.SECOND / 100, gym.tickClock, gym);
@@ -219,7 +226,8 @@ function render() {
             c.debugText.alignTo(c.sprite, Phaser.LEFT_TOP, 2);
         }
 
-        if (c.isThinking) {
+        // TODO: Instead of destroying the sprite and recreating each time. Cant we just change the x,y vals of the sprite?
+        if (c.isThinking && c.sprite) {
             // Render the current thought
             if (c.currentThoughtSprite) {
                 c.currentThoughtSprite.destroy();
@@ -286,21 +294,37 @@ function renderUI() {
     }
     ui.numCustomers = game.add.text(0, 20, "Num Customers: " + gym.customers.length, style);
 
+    if (gym.dailyCustomerQueue.length > 0) {
+        balance = gym.dailyCustomerQueue.pop();
+        posStyle = { font: "20px Arial", fill: "#44e20b", wordWrap: false, align: "center" };
+        negStyle = { font: "20px Arial", fill: "#f70254", wordWrap: false, align: "center" };
+
+        if (balance > 0) {
+            ui.dailyCustomerBalanceTicker = game.add.text(140, 30, "+ " + balance, posStyle);
+        } else {
+            ui.dailyCustomerBalanceTicker = game.add.text(140, 30, "- " + Math.abs(balance), negStyle);
+        }
+        game.time.events.loop(Phaser.Timer.SECOND / 100, dailyBalanceFall, ui.dailyCustomerBalanceTicker);
+    }
+
+
+
+    style.fill = "#f442c5";
     //if (debug) {
         if (ui.gymFame) {
             ui.gymFame.destroy();
         }
-        ui.gymFame = game.add.text(0, 40, "Gym Fame: " + gym.fame, style);
+        ui.gymFame = game.add.text(0, game.world.height - 80, "Gym Fame: " + gym.fame, style);
 
         if (ui.avgCustHappiness) {
             ui.avgCustHappiness.destroy();
         }
-        ui.avgCustHappiness = game.add.text(0, 60, "Avg cust happiness: " + gym.getAvgCustomerHappiness(), style);
+        ui.avgCustHappiness = game.add.text(0, game.world.height - 60, "Avg cust happiness: " + gym.getAvgCustomerHappiness(), style);
 
         if (ui.membershipCost) {
             ui.membershipCost.destroy();
         }
-        ui.membershipCost = game.add.text(0, 80, "Daily membership cost: $" + gym.membershipCost, style);
+        ui.membershipCost = game.add.text(0, game.world.height - 40, "Daily membership cost: $" + gym.membershipCost, style);
     //}
 }
 
@@ -327,7 +351,7 @@ function openBuildStore() {
 
     var buildingParts = ['floor', 'wall'];
     var buildStoreUiElements = [title, background];
-    var y_offset = 0;
+    var y_offset = 10;
 
     for (var i = 0; i < buildingParts.length; i++) {
         var part = buildingParts[i];
@@ -354,7 +378,13 @@ function openBuildStore() {
         buildStoreUiElements.push(floorSprite);
         buildStoreUiElements.push(name);
         buildStoreUiElements.push(purchase);
-        y_offset += 100;
+
+        if (y_offset + 100 < game.world.height) {
+            y_offset += 100;
+        } else {
+            x_offset = 400;
+            y_offset = 10;
+        }
     }
 }
 
@@ -372,11 +402,11 @@ function openMachineStore() {
 
     // Put machines on store
     var x_offset = 0;
-    var y_offset = 0;
+    var y_offset = 10;
 
     var machStoreUiElements = [title, background];
     for (var machine in machineStore) {
-        var machineSprite = game.add.sprite(game.world.width / 2 - 300, game.world.height / 6 + y_offset, machine);
+        var machineSprite = game.add.sprite(game.world.width / 2 - 300 + x_offset, game.world.height / 6 + y_offset, machine);
         var name = game.add.text(0, 0, machine, style);
         name.alignTo(machineSprite, Phaser.TOP_LEFT, 1);
         var cost = game.add.text(0, 0, '$'+machineStore[machine].cost+".00", style);
@@ -423,6 +453,12 @@ function openMachineStore() {
         machStoreUiElements.push(name);
         machStoreUiElements.push(cost);
         machStoreUiElements.push(purchase);
-        y_offset += 200;
+
+        if (y_offset + 200 < background.height) {
+            y_offset += 200;
+        } else {
+            x_offset = 200;
+            y_offset = 10;
+        }
     }
 }

@@ -4,6 +4,7 @@ class Gym {
         this.cash = startingCash;
 
         this.dailyBalanceQueue = [];
+        this.dailyCustomerQueue = [];
 
         // openingTime is the minute of the day when the gym opens.
         this.openingTime = 360;
@@ -23,13 +24,11 @@ class Gym {
         this.fame = 1;
 
         // how many dollars per day it costs to use the gym.
-        this.membershipCost = 5;
+        this.membershipCost = 7; // TODO: Should this be adjustable by the user?
 
     }
 
     tickClock() {
-        console.log("[DEBUG] Current Gym Date: " + this.clock.getDate());
-        console.log("[DEBUG] Current Gym Time: " + this.clock.getTimeFormatted());
         var nextDay = this.clock.processStep();
 
         if (nextDay) {
@@ -62,14 +61,10 @@ class Gym {
     // TODO: Implement purchasing different types of advertisements (like in gamedevtycoon)
     //       which will increase the Fame variable for a short period of time.
     acquireNewCustomers() {
-        // TODO: Potential problem:
-        // * How do I address stagnation?
-        // * * You can just stop building machines and eventually the customers will stagnate.
-        //     Is that ok?
-        // * I think introducing employees will make this more pressing to get more customers.
         var numNewCustomers = Math.round(this.fame * (this.getAvgCustomerHappiness() + 1) - this.membershipCost/10);
-
         console.log('[DEBUG] newCustomers today: ' + numNewCustomers);
+        this.dailyCustomerQueue.push(numNewCustomers);
+
         // if numNewCustomers is negative then remove that many customers (most unhappy first) instead of adding new customers.
         if (numNewCustomers < 0) {
             // Remove numNewCustomers from our current customer list (unhappiest first).
@@ -82,6 +77,7 @@ class Gym {
                 if (custToRemove) {
                     custToRemove.delete();
                 }
+                this.fame-=0.01;
             }
             // TODO: There shold be a ticker message saying that people left the gym.
         } else {
@@ -90,16 +86,12 @@ class Gym {
                 var customerType = Customer.getRandomCustomerType();
                 console.log(customerType);
 
-                // TODO: dont make the sprite until they are going to the gym (This is just for debugging)
-                //var sprite = customerGroup.create(32 + i * 80, game.world.height - 150, 'customer-1');
-
                 this.customers.push(new Customer(
                     'customer-'+this.customers.length,
                     customerType,
-                    Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime,
-                    null
+                    Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime
                 ));
-                this.fame+=0.1;
+                this.fame+=0.05;
                 // TODO: There should be a tikcer message saying that people joined the gym.
             }
         }

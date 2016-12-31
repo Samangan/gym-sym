@@ -32,15 +32,21 @@ class Customer {
                     'benchpress'
                 ],
                 days_of_week: [2, 4, 6]
-            }
+            },
+            cardio_fiend: {
+                routine: [
+                    'treadmill',
+                    'treadmill' // TODO: Make more cardio machines (ex: stairs)
+                ],
+                days_of_week: [0, 2, 4, 6]
+            },
         };
     };
 
     constructor(
         name,
         customerType,
-        timeWorkoutStarts,
-        sprite
+        timeWorkoutStarts
     ) {
         // TODO: use uuid package instead:
         this.id = Math.floor((Math.random() * 100000) + 1);
@@ -58,7 +64,8 @@ class Customer {
             sad: {
                 'long_lines_suck': 0,
                 'workout_not_finished': 0,
-                'machine_not_available': 0
+                'machine_not_available': 0,
+                'no_shower': 0
             }
         };
 
@@ -95,7 +102,7 @@ class Customer {
         // defaultMovementSpeed is  measured in `n pixels per second`.
         this.defaultMovementSpeed = 300;
         this.currentMovementSpeed = this.defaultMovementSpeed;
-        this.sprite = sprite;
+        this.sprite = null;
         // destinationPos is an obect that contains the x,y coords where this customer wishes to move to.
         this.destinationPos = null;
         this.isMoving = false;
@@ -171,14 +178,13 @@ class Customer {
 
     // process*State() functions:
     processHomeState(gym) {
-        if (this.sprite) {
+        if (this.sprite && !this.isMoving) {
             this.sprite.destroy();
             this.sprite = null;
         }
 
         if (this.removeFromGym) {
             console.log("[DEBUG] " + this.name + ' is cancelling their subscription');
-            this.sprite.destroy();
             gym.customers = _.without(gym.customers, _.findWhere(gym.customers, {
                 id: this.id
             }));
@@ -189,8 +195,6 @@ class Customer {
             this.resetCustomerSession();
             // Create sprite:
             this.sprite = customerGroup.create(game.world.width / 2, game.world.height, 'customer-1');
-            // Move the sprite to the center of the gym.
-            //this.moveToXY(400,400);
             this.state.goToGym();
         }
     }
@@ -204,6 +208,8 @@ class Customer {
         if (!gym.isOpen()) {
             console.log("[DEBUG] Gym is closing. " + this.name + " is going home");
             this.addThought('sad', 'workout_not_finished');
+            // Go home:
+            this.moveToXY(game.world.width / 2, game.world.height);
             return this.state.leaveGym();
         }
 
@@ -311,27 +317,30 @@ class Customer {
         }
     }
 
-
     // TODO: Should shower just be another machine?
-    // * If there is a maximum amount of people in the shower then they have to wait in line for the shower as well.
-    //   That means that we need to go through the same states as with the machines. That could work fine. Or we could just say
-    //   that the shower fits infinite people, which is dumb. let;s just git rid of showers.
+    //       (Meaning also a machine for the machine states.)
+    //       That would allow users to line up in a line waiting. But for now showers are going to be magical
+    //       and allow infinite people.
     processShoweringState() {
-        // TODO: Move them to the shower 'machine' once it is made.
-        // See below notes.
-        if (!this.isMoving) {
-            this.moveToXY(500, 25);
-        }
+        var r = gym.findMachineForWorkout('shower');
 
-        // TODO: If there is no shower then leave a negative thought and leave.
-        // NOTE: A shower should be another 'machine' with a large number of concurrentCustomers.
-        // This state will specifically look for a shower machine since it has it's own state / thought.
-
-        if (this.meters.dirty === 0) {
-            console.log("[DEBUG] " + this.name + " has finished showering. Going home.");
+        if (r === null || r.status === 'MISSING') {
+            this.addThought('sad', 'no_shower');
+            // Go home:
+            this.moveToXY(game.world.width / 2, game.world.height);
             this.state.leaveGym();
-        } else  {
-            this.meters.dirty--;
+        } else {
+            // Shower exists: Move to that location:
+            if (!this.isMoving) {
+                this.moveToXY(r.machine.sprite.x, r.machine.sprite.y);
+            }
+
+            if (this.meters.dirty === 0) {
+                console.log("[DEBUG] " + this.name + " has finished showering. Going home.");
+                this.state.leaveGym();
+            } else  {
+                this.meters.dirty--;
+            }
         }
     }
 
