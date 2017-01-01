@@ -16,9 +16,7 @@ Go here: < TODO insert url> to play a version of the game
 `npm run deploy`
 
 ## TODO
- ++ Setup es6 + babel + webpack.
- + Better organize the code using phaser game states. (http://perplexingtech.weebly.com/game-dev-blog/using-states-in-phaserjs-javascript-game-developement)
- * Add more machines + more customerTypes
+ + Add more machines + more customerTypes
  * * Make unique sprites for each customerType and each machine.
  * A* Pathing + collision
  * Show detail info of customer / machine on clicking.
