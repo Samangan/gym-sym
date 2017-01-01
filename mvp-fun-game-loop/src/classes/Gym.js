@@ -1,8 +1,13 @@
 
-class Gym {
-    constructor(startingCash, machines, customers) {
-        this.cash = startingCash;
+import _ from 'underscore';
 
+import Clock from './Clock';
+import Customer from './Customer';
+
+class Gym {
+    constructor(startingCash, game) {
+        this.cash = startingCash;
+        this.game = game;
         this.dailyBalanceQueue = [];
         this.dailyCustomerQueue = [];
 
@@ -15,10 +20,10 @@ class Gym {
         this.clock = new Clock(1398, new Date(2005, 0, 1));
 
         // machines is a list of all of the machines in this gym.
-        this.machines = machines || [];
+        this.machines = [];
 
         // customers is a list of the paying customers that belong to the gym.
-        this.customers = customers || [];
+        this.customers = [];
 
         // fame represents the gym's popularity (increases over time as more people join) TODO: Implement increasing later.
         this.fame = 1;
@@ -57,9 +62,6 @@ class Gym {
         this.dailyBalanceQueue.push(dailyBalance);
     }
 
-
-    // TODO: Implement purchasing different types of advertisements (like in gamedevtycoon)
-    //       which will increase the Fame variable for a short period of time.
     acquireNewCustomers() {
         var numNewCustomers = Math.round(this.fame * (this.getAvgCustomerHappiness() + 1) - this.membershipCost/10);
         console.log('[DEBUG] newCustomers today: ' + numNewCustomers);
@@ -101,13 +103,10 @@ class Gym {
         if (this.customers.length === 0) {
             return 1;
         }
-
         var h = 0;
-
         for (var i = 0; i < this.customers.length; i++) {
             h += this.customers[i].getTotalHappiness();
         }
-
         return h / this.customers.length;
     }
 
@@ -187,3 +186,5 @@ class Gym {
         return res;
     }
 }
+
+export default Gym;

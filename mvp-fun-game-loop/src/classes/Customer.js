@@ -1,4 +1,8 @@
 
+import StateMachine from 'javascript-state-machine';
+import CustomerMeters from './CustomerMeters';
+import GymSession from './GymSession';
+
 class Customer {
     static getRandomCustomerType() {
         var types = ['weekend_warrior', 'body_builder_barbell', 'how_much_can_you_bench_bro'];
@@ -162,15 +166,15 @@ class Customer {
         if (this.state.is('home')) {
             this.processHomeState(gym);
         } else if (this.state.is('idle')) {
-            this.processIdleState();
+            this.processIdleState(gym);
         } else if (this.state.is('looking_for_machine')) {
-            this.processLookingForMachineState();
+            this.processLookingForMachineState(gym);
         } else if (this.state.is('waiting_in_line')) {
             this.processWaitingInLineState();
         } else if (this.state.is('working_out')) {
             this.processWorkingOutState();
         } else if (this.state.is('showering')) {
-            this.processShoweringState();
+            this.processShoweringState(gym);
         } else if (this.state.is('socializing')) {
             this.processSocializingState();
         }
@@ -192,14 +196,14 @@ class Customer {
 
         if (this.isTimeForWorkout(gym)) {
             console.log("[DEBUG] " + this.name + " is going to gym");
-            this.resetCustomerSession();
+            this.resetCustomerSession(gym);
             // Create sprite:
-            this.sprite = customerGroup.create(game.world.width / 2, game.world.height, 'customer-1');
+            this.sprite = gym.game.add.sprite(game.world.width / 2, game.world.height, 'customer-1');
             this.state.goToGym();
         }
     }
 
-    processIdleState() {
+    processIdleState(gym) {
         if (this.meters.social === 0) {
             console.log("[DEBUG] " + this.name + " is starting to socialize");
             return this.state.startSocializing();
@@ -209,7 +213,7 @@ class Customer {
             console.log("[DEBUG] Gym is closing. " + this.name + " is going home");
             this.addThought('sad', 'workout_not_finished');
             // Go home:
-            this.moveToXY(game.world.width / 2, game.world.height);
+            this.moveToXY(gym.game.world.width / 2, gym.game.world.height);
             return this.state.leaveGym();
         }
 
@@ -239,7 +243,7 @@ class Customer {
         }
     }
 
-    processLookingForMachineState() {
+    processLookingForMachineState(gym) {
         if (this.isWorkoutOver()) {
             console.log("[DEBUG] Workout over. " + this.name + " is going to shower.");
             if (this.currentSession.numMachinesSkipped === 0) {
@@ -321,13 +325,13 @@ class Customer {
     //       (Meaning also a machine for the machine states.)
     //       That would allow users to line up in a line waiting. But for now showers are going to be magical
     //       and allow infinite people.
-    processShoweringState() {
+    processShoweringState(gym) {
         var r = gym.findMachineForWorkout('shower');
 
         if (r === null || r.status === 'MISSING') {
             this.addThought('sad', 'no_shower');
             // Go home:
-            this.moveToXY(game.world.width / 2, game.world.height);
+            this.moveToXY(gym.game.world.width / 2, gym.game.world.height);
             this.state.leaveGym();
         } else {
             // Shower exists: Move to that location:
@@ -355,7 +359,7 @@ class Customer {
     }
     // End of process*State() functions
 
-    resetCustomerSession() {
+    resetCustomerSession(gym) {
         this.lastWorkoutDate = new Date(gym.getDate());
         this.currentSession = new GymSession(gym.getDate());
         this.meters = new CustomerMeters();
@@ -394,3 +398,5 @@ class Customer {
         return Customer.customerTypes()[this.customerType];
     }
 }
+
+export default Customer;

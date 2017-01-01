@@ -94,3 +94,5 @@ class Machine {
         };
     }
 }
+
+export default Machine;

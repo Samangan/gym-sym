@@ -38,3 +38,5 @@ class GymSession {
         this.currentMachineUsageTime++;
     }
 }
+
+export default GymSession;

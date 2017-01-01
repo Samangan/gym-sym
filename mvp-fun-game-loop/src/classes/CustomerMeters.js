@@ -9,3 +9,5 @@ class CustomerMeters {
         this.screenTouch = 500; // how much they use their phone when idling.
     }
 }
+
+export default CustomerMeters;

@@ -40,3 +40,5 @@ class Clock {
         // TODO: Implement
     }
 }
+
+export default Clock;
