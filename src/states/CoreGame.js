@@ -30,9 +30,9 @@ class CoreGame extends Phaser.State {
         this.game.load.image('thought-bubble-machine_not_available', 'assets/customers/thought_bubble_machine_not_available.png');
         this.game.load.image('thought-bubble-no_shower', 'assets/customers/thought_bubble_no_shower.png');
 
-
-        // preload machines data into store:
+        // preload json data:
         this.game.load.json('machineStore', 'data/machines.json');
+        this.game.load.json('customerTypes', 'data/customerTypes.json');
 
         // TODO: Put all of the menu related stuff in the menu state file.
         this.game.load.image('store-background', 'assets/ui/store-background.png');
@@ -45,12 +45,13 @@ class CoreGame extends Phaser.State {
         this.initGymMap();
         this.initHUD();
 
-        this.gym = new Gym(30000, this.game);
+        this.machineStore = this.game.cache.getJSON('machineStore');
+        this.customerTypes = this.game.cache.getJSON('customerTypes');
+
+        this.gym = new Gym(30000, this.game, this.customerTypes);
 
         // Every 1/100 seconds is 1 in-game minute:
         this.game.time.events.loop(Phaser.Timer.SECOND / 100, this.gym.tickClock, this.gym);
-
-        this.machineStore = this.game.cache.getJSON('machineStore');
     }
 
     update() {
@@ -319,7 +320,7 @@ class CoreGame extends Phaser.State {
         title.alignTo(background, Phaser.TOP_CENTER, 1);
 
         // Put machines on store
-        var x_offset = 0;
+        var x_offset = -100;
         var y_offset = 10;
 
         var machStoreUiElements = [title, background];
@@ -375,7 +376,7 @@ class CoreGame extends Phaser.State {
             if (y_offset + 200 < background.height) {
                 y_offset += 200;
             } else {
-                x_offset = 200;
+                x_offset = 350;
                 y_offset = 10;
             }
         }

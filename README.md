@@ -30,10 +30,6 @@ Go here: < TODO insert url> to play a version of the game
  * Allow player to see a budget with graphs and shit
  * Implement time controls:
  * * pause, halfspeed, double/triple speed
- * Productionalize the project:
- * * webpack or some other build tool.
- * * require.js.
- * * etc.
 
 ## Brainstorming:
  * Implement advertisements that increase gym fame for a short amount of time.

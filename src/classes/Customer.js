@@ -4,59 +4,16 @@ import CustomerMeters from './CustomerMeters';
 import GymSession from './GymSession';
 
 class Customer {
-    static getRandomCustomerType() {
-        var types = ['weekend_warrior', 'body_builder_barbell', 'how_much_can_you_bench_bro'];
-        var i = Math.floor((Math.random() * types.length));
-        return types[i];
-    }
-
-    // TODO: customerTypes should be a json file like machines that we read in at game startup.
-    // customerTypes() outputs a map of the customerType string
-    // to the list of machines that the customer will use in a complete
-    // workout session.
-    static customerTypes() {
-        return {
-            weekend_warrior : {
-                routine: [
-                    'treadmill',
-                    'freeweights',
-                    'benchpress'
-                ],
-                days_of_week: [0, 6]    // days_of_week is an array of days this customerType works out.
-            },
-            body_builder_barbell: {
-                routine: [
-                    'treadmill',
-                    'benchpress'
-                ],
-                days_of_week: [1, 3, 5]
-            },
-            how_much_can_you_bench_bro: {
-                routine: [
-                    'benchpress'
-                ],
-                days_of_week: [2, 4, 6]
-            },
-            cardio_fiend: {
-                routine: [
-                    'treadmill',
-                    'treadmill' // TODO: Make more cardio machines (ex: stairs)
-                ],
-                days_of_week: [0, 2, 4, 6]
-            },
-        };
-    };
-
     constructor(
         name,
-        customerType,
-        timeWorkoutStarts
+        timeWorkoutStarts,
+        customerRoutine
     ) {
         // TODO: use uuid package instead:
         this.id = Math.floor((Math.random() * 100000) + 1);
         this.name = name;
         this.dateJoined = new Date();
-        this.customerType = customerType;
+        this.customerRoutine = customerRoutine;
         this.lastPaymentDate = null;
 
         // TODO: make clean / dirty environment thoughts
@@ -253,7 +210,7 @@ class Customer {
         }
 
         // Workout is not over; look for a machine to use.
-        var machines = Customer.customerTypes()[this.customerType].routine;
+        var machines = this.customerRoutine.routine;
         var nextMachine =  machines[this.currentSession.numMachinesUsedInSession];
         var r = gym.findMachineForWorkout(nextMachine);
 
@@ -371,7 +328,7 @@ class Customer {
 
     // TODO: this should be in customerSession.js:
     isWorkoutOver() {
-        var workoutLength = this.getCustomerType().routine.length;
+        var workoutLength = this.customerRoutine.routine.length;
         return this.currentSession.numMachinesUsedInSession >= workoutLength;
     }
 
@@ -383,7 +340,7 @@ class Customer {
     }
 
     needsToWorkout(today) {
-        var workoutDays = this.getCustomerType().days_of_week;
+        var workoutDays = this.customerRoutine.days_of_week;
 
         if (workoutDays.indexOf(today.getDay()) >= 0) {
             if (this.lastWorkoutDate === null ||
@@ -392,10 +349,6 @@ class Customer {
             }
         }
         return false;
-    }
-
-    getCustomerType() {
-        return Customer.customerTypes()[this.customerType];
     }
 }
 

@@ -6,9 +6,8 @@ class Clock {
         // currentDate is the current in-game date.
         this.currentDate = startDate;
 
-        // NOTE: There are 1440 minutes in a day.
-        // * The minute is the atomic unit of time in GymSym.
-        this.MINUTES_IN_DAY = 1440; // TODO: Make this a static thing shared by the whole class.
+        // NOTE The minute is the atomic unit of time in GymSym.
+        this.MINUTES_IN_DAY = 1440;
     }
 
     processStep() {

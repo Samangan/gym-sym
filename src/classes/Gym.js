@@ -5,9 +5,10 @@ import Clock from './Clock';
 import Customer from './Customer';
 
 class Gym {
-    constructor(startingCash, game) {
+    constructor(startingCash, game, customerTypes) {
         this.cash = startingCash;
         this.game = game;
+        this.customerTypes = customerTypes;
         this.dailyBalanceQueue = [];
         this.dailyCustomerQueue = [];
 
@@ -35,7 +36,6 @@ class Gym {
 
     tickClock() {
         var nextDay = this.clock.processStep();
-
         if (nextDay) {
             this.closeBooks();
             this.acquireNewCustomers();
@@ -85,13 +85,13 @@ class Gym {
         } else {
             // Add numNewCustomers to our gym
             for (var i = 0; i < numNewCustomers; i++) {
-                var customerType = Customer.getRandomCustomerType();
+                var customerType = this.getRandomCustomerType();
                 console.log(customerType);
 
                 this.customers.push(new Customer(
                     'customer-'+this.customers.length,
-                    customerType,
-                    Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime
+                    Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime,
+                    this.customerTypes[customerType]
                 ));
                 this.fame+=0.05;
                 // TODO: There should be a tikcer message saying that people joined the gym.
@@ -184,6 +184,12 @@ class Gym {
         res.machine = availableMachines[i-1];
         res.status = 'FOUND';
         return res;
+    }
+
+    getRandomCustomerType() {
+        var types = Object.keys(this.customerTypes);
+        var i = Math.floor((Math.random() * types.length));
+        return types[i];
     }
 }
 
