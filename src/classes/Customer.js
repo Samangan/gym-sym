@@ -9,13 +9,15 @@ class Customer {
     constructor(
         name,
         timeWorkoutStarts,
-        customerRoutine
+        customerRoutine,
+        customerType
     ) {
         // TODO: use uuid package instead:
         this.id = Math.floor((Math.random() * 100000) + 1);
         this.name = name;
         this.dateJoined = new Date();
         this.customerRoutine = customerRoutine;
+        this.customerType = customerType;
         this.lastPaymentDate = null;
 
         // TODO: make clean / dirty environment thoughts
@@ -31,6 +33,8 @@ class Customer {
                 'no_shower': 0
             }
         };
+
+        this.showDetailView = false;
 
         // thoughtBubbles is a queue of thoughts
         // that will be popped off and displayed to the user by game.js render loop.
@@ -144,6 +148,12 @@ class Customer {
         if (this.sprite && !this.isMoving) {
             this.sprite.destroy();
             this.sprite = null;
+
+        }
+
+        if (this.detailView) {
+            this.detailView.destroy();
+            this.showDetailView = false;
         }
 
         if (this.removeFromGym) {
@@ -157,7 +167,12 @@ class Customer {
             console.log("[DEBUG] " + this.name + " is going to gym");
             this.resetCustomerSession(gym);
             // Create sprite:
-            this.sprite = gym.game.add.sprite(game.world.width / 2, game.world.height, 'customer-1');
+            this.sprite = gym.game.add.sprite(gym.game.world.width / 2, gym.game.world.height, 'customer-1');
+
+            this.sprite.inputEnabled = true;
+            this.sprite.input.draggable = false;
+            this.sprite.events.onInputDown.add(this.onClick, this);
+
             this.state.goToGym();
         }
     }
@@ -320,7 +335,7 @@ class Customer {
 
     resetCustomerSession(gym) {
         this.lastWorkoutDate = new Date(gym.getDate());
-        this.currentSession = new GymSession(gym.getDate());
+        this.currentSession = new GymSession(gym.getDate(), this.customerRoutine.routine.length);
         this.meters = new CustomerMeters();
     }
 
@@ -351,6 +366,17 @@ class Customer {
             }
         }
         return false;
+    }
+
+    getSession() {
+        return this.currentSession;
+    }
+
+    onClick(s) {
+        this.showDetailView = true;
+        if (this.detailView) {
+            this.detailView = null;
+        }
     }
 }
 

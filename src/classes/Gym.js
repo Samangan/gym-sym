@@ -27,7 +27,7 @@ class Gym {
         this.customers = [];
 
         // fame represents the gym's popularity (increases over time as more people join) TODO: Implement increasing later.
-        this.fame = 1;
+        this.fame = 10; // 1;
 
         // how many dollars per day it costs to use the gym.
         this.membershipCost = 7; // TODO: Should this be adjustable by the user?
@@ -91,7 +91,8 @@ class Gym {
                 this.customers.push(new Customer(
                     'customer-'+this.customers.length,
                     Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime,
-                    this.customerTypes[customerType]
+                    this.customerTypes[customerType],
+                    customerType
                 ));
                 this.fame+=0.05;
                 // TODO: There should be a tikcer message saying that people joined the gym.

@@ -7,6 +7,10 @@ class Machine {
         this.isRental = false;
         this.costToPurchase = m.cost;
 
+        // totalNumUsers is the historical count of every user
+        // who used this machine.
+        this.totalNumUsers = 0;
+
         this.maintLevel = 100;
         this.maintFactor = m.maintFactor;
 
@@ -42,6 +46,7 @@ class Machine {
         this.currentCustomers.push(
             this.customerLine.shift()
         );
+        this.totalNumUsers++;
     }
 
     // Check if 1st customer in line can use the machine now.

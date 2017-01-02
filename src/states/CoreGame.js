@@ -1,4 +1,6 @@
 
+import _ from 'underscore';
+
 import Gym from '../classes/Gym';
 import Machine from '../classes/Machine';
 import HUD from '../HUD';
@@ -44,6 +46,9 @@ class CoreGame extends Phaser.State {
 
         // Every 1/100 seconds is 1 in-game minute:
         this.game.time.events.loop(Phaser.Timer.SECOND / 100, this.gym.tickClock, this.gym);
+
+        // Listen for a click to disable detailview
+        this.game.input.onDown.add(this.listenForDetailViewUnFocus, this);
     }
 
     update() {
@@ -80,6 +85,8 @@ class CoreGame extends Phaser.State {
 
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
+
+            // TODO: Get rid of debug now that I have the detailview:
             if (this.game.isDebug && c.sprite) {
                 var style = { font: "10px Arial", fill: "#f9542f4", wordWrap: true, wordWrapWidth: c.sprite.width, align: "center" };
                 if (c.debugText) {
@@ -100,6 +107,26 @@ class CoreGame extends Phaser.State {
                 c.currentThoughtSprite.alignTo(c.sprite, Phaser.RIGHT_TOP, 2);
                 // Remove the bubble after 1 second:
                 this.game.time.events.add(Phaser.Timer.SECOND * 1, c.removeThoughtBubble, c);
+            }
+
+            if (c.showDetailView && c.sprite) {
+                if (c.detailView) {
+                    c.detailView.destroy();
+                }
+                this.detailViewOn = true;
+                var workoutDone = ['✖', '✓'];
+                var style = { font: "12px Arial", fill: "#ffffff", backgroundColor: "#7a7d82", wordWrap: true, wordWrapWidth: 100, align: "left" };
+                c.detailView = this.game.add.text(
+                    c.sprite.x - 100,
+                    c.sprite.y,
+                    c.name +
+                        "\n" + c.customerType +
+                        "\n\n" + "Routine:" +
+                        "\n" + _.map(c.customerRoutine.routine, (w, i) => {
+                            return w + "   " + workoutDone[c.getSession().machinesUsed[i]] + "\n";
+                        }).join(""),
+                    style
+                );
             }
         }
 
@@ -140,6 +167,18 @@ class CoreGame extends Phaser.State {
         this.gymLayer.resizeWorld();
     }
 
+    listenForDetailViewUnFocus() {
+        if (this.detailViewOn) {
+            _.each(this.gym.customers, (c) => {
+                if (c.showDetailView) {
+                    c.showDetailView = false;
+                    c.detailView.destroy();
+                    c.detailView = null;
+                }
+            });
+            this.detailViewOn = false;
+        }
+    }
 }
 
 export default CoreGame;

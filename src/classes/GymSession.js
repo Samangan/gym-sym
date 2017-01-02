@@ -2,8 +2,14 @@
 // GymSession represents the state of a customer's single gym session.
 class GymSession {
 
-    constructor(startDate) {
+    constructor(startDate, routineLength) {
         this.startTime = startDate;
+
+        this.machinesUsed = [];
+        for (var i = 0; i < routineLength; i++) {
+            this.machinesUsed.push(0);
+        }
+
         // numMachinesUsedInSession is the number of machines they have used of the total
         // number of machines in their workout routine.
         // (See: customerTypes() object for the routine for each customerType)
@@ -29,6 +35,7 @@ class GymSession {
     }
 
     useNextMachine() {
+        this.machinesUsed[this.numMachinesUsedInSession] = 1;
         this.numMachinesUsedInSession++;
         this.currentMachine = null;
         this.currentMachineUsageTime = 0;

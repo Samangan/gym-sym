@@ -34,11 +34,8 @@ class HUD {
         }
 
         this.renderGymClock(gym);
-
         this.renderGymMoney(gym);
-
         this.renderCustomers(gym);
-
         // TODO: Finialize what I am going to display to the user.
         this.renderDebug(gym);
     }
