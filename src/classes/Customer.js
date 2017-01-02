@@ -1,5 +1,7 @@
 
+import _ from 'underscore';
 import StateMachine from 'javascript-state-machine';
+
 import CustomerMeters from './CustomerMeters';
 import GymSession from './GymSession';
 

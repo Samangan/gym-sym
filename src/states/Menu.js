@@ -2,9 +2,6 @@
 import Machine from '../classes/Machine';
 
 class Menu extends Phaser.State {
-    // TODO: I should split the HUD out into a separate class so that I can render the HUD within this menu state.
-    //       This is mostly important so that I can still show how much money they gym has to spend.
-
     preload() {
         this.game.load.image('store-background', 'assets/ui/store-background.png');
         this.game.load.image('store-exit-btn', 'assets/ui/store-exit-btn.png');
@@ -16,8 +13,8 @@ class Menu extends Phaser.State {
         this.style = { font: "16px Arial", fill: "#42bcf4", wordWrap: false, align: "center"};
 
         this.machineStore = this.game.cache.getJSON('machineStore');
-
         this.gym = this.game.gym;
+        this.game.hud.renderHUD(this.gym);
 
         // Right now we only have one menu.
         this.openMachineStore();

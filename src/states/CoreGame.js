@@ -1,13 +1,11 @@
 
 import Gym from '../classes/Gym';
 import Machine from '../classes/Machine';
+import HUD from '../HUD';
 
 class CoreGame extends Phaser.State {
     preload () {
-        // preload the hud:
-        this.game.load.image('machine-store-btn', 'assets/ui/machine-store-btn.png');
-        this.game.load.image('pause-time-btn', 'assets/ui/pause-time-btn.png');
-        this.game.load.image('resume-time-btn', 'assets/ui/resume-time-btn.png');
+        this.game.hud = new HUD(game);
 
         // preload the gym:
         this.game.load.image('gym-tiles', 'assets/map/gridtiles.png');
@@ -32,11 +30,10 @@ class CoreGame extends Phaser.State {
     }
 
     create() {
-        this.debug = false;
+        this.game.isDebug = false;
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
         this.initGymMap();
-        this.initHUD();
 
         this.customerTypes = this.game.cache.getJSON('customerTypes');
 
@@ -50,13 +47,6 @@ class CoreGame extends Phaser.State {
     }
 
     update() {
-        // TODO: Actaully just tie the update loop to the in-game clock.
-        // Read: http://gafferongames.com/game-physics/fix-your-timestep/
-        // to see how to achieve this.
-
-        //game.physics.arcade.collide(customerGroup, customerGroup); //, collisionHandler, null, this);
-        //game.physics.arcade.collide(customerGroup, ui.gymLayer, collisionHandler, null, this);
-
         // Process potential action for each customer:
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
@@ -86,11 +76,11 @@ class CoreGame extends Phaser.State {
     }
 
     render() {
-        this.renderHUD();
+        this.game.hud.renderHUD(this.gym);
 
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
-            if (this.debug && c.sprite) {
+            if (this.game.isDebug && c.sprite) {
                 var style = { font: "10px Arial", fill: "#f9542f4", wordWrap: true, wordWrapWidth: c.sprite.width, align: "center" };
                 if (c.debugText) {
                     c.debugText.destroy();
@@ -117,7 +107,6 @@ class CoreGame extends Phaser.State {
             var m = this.gym.machines[i];
 
             if (!m.sprite || !m.sprite.visible) {
-                // Create sprite:
                 m.sprite = this.game.add.sprite(m.positionInGym.x, m.positionInGym.y, m.name);
                 // Register the onDragStop event with the new machine in the gym:
                 m.sprite.inputEnabled = true;
@@ -125,20 +114,6 @@ class CoreGame extends Phaser.State {
                 m.sprite.events.onDragStop.add(m.onDragMachineStop, m);
             }
         }
-    }
-
-    // TODO: Put the HUD init / render functions in a different file so that all States can use them.
-    initHUD() {
-        this.ui = {
-            tilesetMap: {
-                floor: 1,
-                wall: 5
-            },
-        };
-        this.ui.machineStoreBtn = this.game.add.button(this.game.world.width - 175, -5, 'machine-store-btn', () => {
-            this.game.state.start('menu');
-        }, this);
-        this.ui.pauseTimeBtn = this.game.add.button(this.game.world.width - 550, 5, 'pause-time-btn', this.pauseTime, this);
     }
 
     initGymMap() {
@@ -165,85 +140,6 @@ class CoreGame extends Phaser.State {
         this.gymLayer.resizeWorld();
     }
 
-    // TODO: All this hud rendering junnk is janky and shouldnt belong here.
-    // * The menus should be in their own state at least.
-    renderHUD() {
-        // Render Gym clock:
-        var style = { font: "20px Arial", fill: "#98f700", wordWrap: false, align: "center"};
-
-        // TODO: just change the text instead of destroying these each time lol.
-        if (this.ui.gymClock) {
-            this.ui.gymClock.destroy();
-        }
-        var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        this.ui.gymClock = this.game.add.text(0, 0, days[this.gym.getDate().getDay()] + ' ' + this.gym.getDate().toString().replace(/\S+\s(\S+)\s(\d+)\s(\d+)\s.*/,'$1, $2 $3') + " : " + this.gym.getTimeFormatted(), style);
-
-        // Render Gym money amount:
-        if (this.ui.moneyDisplay) {
-            this.ui.moneyDisplay.destroy();
-        }
-        this.ui.moneyDisplay = this.game.add.text(this.game.world.width - 100, 0, "$ " + this.gym.getCash() + ".00" ,style);
-
-        if (this.gym.dailyBalanceQueue.length > 0) {
-            var balance = this.gym.dailyBalanceQueue.pop();
-            var posStyle = { font: "20px Arial", fill: "#44e20b", wordWrap: false, align: "center" };
-            var negStyle = { font: "20px Arial", fill: "#f70254", wordWrap: false, align: "center" };
-
-            if (balance > 0) {
-                this.ui.dailyBalanceTicker = this.game.add.text(this.game.world.width - 100, 20, "+ $ " + balance + ".00", posStyle);
-            } else {
-                this.ui.dailyBalanceTicker = this.game.add.text(this.game.world.width - 100, 20, "- $ " + Math.abs(balance) + ".00", negStyle);
-            }
-            this.game.time.events.loop(Phaser.Timer.SECOND / 100, this.dailyBalanceFall, this.ui.dailyBalanceTicker);
-        }
-
-        // Render number of customers:
-        if (this.ui.numCustomers) {
-            this.ui.numCustomers.destroy();
-        }
-        this.ui.numCustomers = this.game.add.text(0, 20, "Num Customers: " + this.gym.customers.length, style);
-
-        if (this.gym.dailyCustomerQueue.length > 0) {
-            balance = this.gym.dailyCustomerQueue.pop();
-            posStyle = { font: "20px Arial", fill: "#44e20b", wordWrap: false, align: "center" };
-            negStyle = { font: "20px Arial", fill: "#f70254", wordWrap: false, align: "center" };
-
-            if (balance > 0) {
-                this.ui.dailyCustomerBalanceTicker = this.game.add.text(140, 30, "+ " + balance, posStyle);
-            } else {
-                this.ui.dailyCustomerBalanceTicker = this.game.add.text(140, 30, "- " + Math.abs(balance), negStyle);
-            }
-            this.game.time.events.loop(Phaser.Timer.SECOND / 100, this.dailyBalanceFall, this.ui.dailyCustomerBalanceTicker);
-        }
-
-        style.fill = "#f442c5";
-
-        if (this.ui.gymFame) {
-            this.ui.gymFame.destroy();
-        }
-        this.ui.gymFame = this.game.add.text(0, this.game.world.height - 80, "Gym Fame: " + this.gym.fame, style);
-
-        if (this.ui.avgCustHappiness) {
-            this.ui.avgCustHappiness.destroy();
-        }
-        this.ui.avgCustHappiness = this.game.add.text(0, this.game.world.height - 60, "Avg cust happiness: " + this.gym.getAvgCustomerHappiness(), style);
-
-        if (this.ui.membershipCost) {
-            this.ui.membershipCost.destroy();
-        }
-        this.ui.membershipCost = this.game.add.text(0, this.game.world.height - 40, "Daily membership cost: $" + this.gym.membershipCost, style);
-    }
-
-    // TODO: Put this somewhere meaningful
-    dailyBalanceFall() {
-        this.y += 1;
-
-        // A bit hacky..
-        // TODO: JUst make this a tween + fade out
-        if (this. y > 100) {
-            this.destroy();
-        }
-    }
 }
 
 export default CoreGame;
