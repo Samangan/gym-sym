@@ -26,8 +26,8 @@ class Gym {
         // customers is a list of the paying customers that belong to the gym.
         this.customers = [];
 
-        // fame represents the gym's popularity (increases over time as more people join) TODO: Implement increasing later.
-        this.fame = 10; // 1;
+        // fame represents the gym's popularity (increases over time as more people join).
+        this.fame = 1;
 
         // how many dollars per day it costs to use the gym.
         this.membershipCost = 7; // TODO: Should this be adjustable by the user?

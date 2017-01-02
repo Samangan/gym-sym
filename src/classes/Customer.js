@@ -70,6 +70,7 @@ class Customer {
         this.defaultMovementSpeed = 300;
         this.currentMovementSpeed = this.defaultMovementSpeed;
         this.sprite = null;
+
         // destinationPos is an obect that contains the x,y coords where this customer wishes to move to.
         this.destinationPos = null;
         this.isMoving = false;
@@ -148,7 +149,6 @@ class Customer {
         if (this.sprite && !this.isMoving) {
             this.sprite.destroy();
             this.sprite = null;
-
         }
 
         if (this.detailView) {

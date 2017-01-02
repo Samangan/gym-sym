@@ -39,7 +39,7 @@ class CoreGame extends Phaser.State {
 
         this.customerTypes = this.game.cache.getJSON('customerTypes');
 
-        if (!this.gym) {
+        if (!this.game.gym) {
             this.gym = new Gym(30000, this.game, this.customerTypes);
             this.game.gym = this.gym;
         }
@@ -52,6 +52,10 @@ class CoreGame extends Phaser.State {
     }
 
     update() {
+        if (this.gameOver()) {
+            this.game.state.start('gameOver');
+        }
+
         // Process potential action for each customer:
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
@@ -165,6 +169,10 @@ class CoreGame extends Phaser.State {
 
         //  Resize the world
         this.gymLayer.resizeWorld();
+    }
+
+    gameOver() {
+        return this.gym.cash <= 0;
     }
 
     listenForDetailViewUnFocus() {
