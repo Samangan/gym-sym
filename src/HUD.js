@@ -3,7 +3,7 @@ class HUD {
     constructor(game) {
         this.game = game;
         this.init();
-        this.style = { font: "20px Arial", fill: "#98f700", wordWrap: false, align: "center"};
+        this.style = { font: "20px Arial", fill: "#e9e8ea", wordWrap: false, align: "center"};
     }
 
     init() {
