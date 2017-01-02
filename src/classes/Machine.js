@@ -86,7 +86,7 @@ class Machine {
 
 
     // UI helpers:
-    static onDragMachineStop(m) {
+    onDragMachineStop(m) {
         // Move the machine to the new location of the sprite:
         this.positionInGym = {
             x: m.x,
