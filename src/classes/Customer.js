@@ -5,6 +5,9 @@ import StateMachine from 'javascript-state-machine';
 import CustomerMeters from './CustomerMeters';
 import GymSession from './GymSession';
 
+// BUG TODO: If the customer goes from standing in line to working out state then they dont move
+//           up to the machine.
+
 class Customer {
     constructor(
         name,

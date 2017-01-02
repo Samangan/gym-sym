@@ -32,7 +32,6 @@ class CoreGame extends Phaser.State {
     }
 
     create() {
-        this.game.isDebug = false;
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
         this.initGymMap();
@@ -90,16 +89,6 @@ class CoreGame extends Phaser.State {
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
 
-            // TODO: Get rid of debug now that I have the detailview:
-            if (this.game.isDebug && c.sprite) {
-                var style = { font: "10px Arial", fill: "#f9542f4", wordWrap: true, wordWrapWidth: c.sprite.width, align: "center" };
-                if (c.debugText) {
-                    c.debugText.destroy();
-                }
-                c.debugText = this.game.add.text(0,0, "state: " + c.state.current, style);
-                c.debugText.alignTo(c.sprite, Phaser.LEFT_TOP, 2);
-            }
-
             // TODO: Instead of destroying the sprite and recreating each time. Cant we just change the x,y vals of the sprite?
             if (c.isThinking && c.sprite) {
                 // Render the current thought
@@ -128,7 +117,8 @@ class CoreGame extends Phaser.State {
                         "\n\n" + "Routine:" +
                         "\n" + _.map(c.customerRoutine.routine, (w, i) => {
                             return w + "   " + workoutDone[c.getSession().machinesUsed[i]] + "\n";
-                        }).join(""),
+                        }).join("") +
+                        "\n\n" + "Current Action: " + c.state.current + "\n",
                     style
                 );
             }
