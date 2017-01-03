@@ -89,7 +89,6 @@ class Machine {
         return -100;
     }
 
-
     // UI helpers:
     onDragMachineStop(m) {
         // Move the machine to the new location of the sprite:

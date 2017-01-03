@@ -129,10 +129,12 @@ class CoreGame extends Phaser.State {
 
             if (!m.sprite || !m.sprite.visible) {
                 m.sprite = this.game.add.sprite(m.positionInGym.x, m.positionInGym.y, m.name);
+                this.game.physics.enable(m.sprite, Phaser.Physics.ARCADE);
+
                 // Register the onDragStop event with the new machine in the gym:
                 m.sprite.inputEnabled = true;
                 m.sprite.input.enableDrag(true);
-                m.sprite.events.onDragStop.add(m.onDragMachineStop, m);
+                m.sprite.events.onDragStop.add(this.onMachineDragStop, m);
             }
         }
     }
@@ -154,9 +156,6 @@ class CoreGame extends Phaser.State {
         // Pre-populate the map with floor tiles:
         this.map.fill(this.tilesetMap.floor, 0, 0, this.game.width, this.game.height, 'level1');
 
-        // Enable collision only for the wall tiles: (TODO: Not working right now.)
-        this.map.setCollision(this.tilesetMap.wall);
-
         //  Resize the world
         this.gymLayer.resizeWorld();
     }
@@ -176,6 +175,16 @@ class CoreGame extends Phaser.State {
             });
             this.detailViewOn = false;
         }
+    }
+
+    onMachineDragStop(m) {
+        for (var i = 0; i < m.game.gym.machines.length; i++) {
+            if (m.game.physics.arcade.overlap(m, m.game.gym.machines[i].sprite)) {
+                m.visible = false;
+                return;
+            }
+        }
+        this.onDragMachineStop(m);
     }
 }
 
