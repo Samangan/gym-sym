@@ -45,16 +45,16 @@ class Menu extends Phaser.State {
             this.renderMachineBtn(x_offset, y_offset, machine);
 
             if (y_offset + 200 < background.height) {
-                y_offset += 200;
+                y_offset += 150;
             } else {
-                x_offset = 250;
+                x_offset += 270;
                 y_offset = 10;
             }
         }
     }
 
     renderMachineBtn(x_offset, y_offset, name) {
-        var machineSprite = this.game.add.sprite(this.game.world.width / 2 - 300 + x_offset, this.game.world.height / 6 + y_offset, name);
+        var machineSprite = this.game.add.sprite(this.game.camera.width / 2 - 300 + x_offset, this.game.camera.height / 6 + y_offset, name);
         var nameTxt = this.game.add.text(0, 0, name, this.style);
         nameTxt.alignTo(machineSprite, Phaser.TOP_CENTER, 1);
         var cost = this.game.add.text(0, 0, '$'+this.machineStore[name].cost+".00", this.style);
@@ -77,12 +77,12 @@ class Menu extends Phaser.State {
 
         this.gym.cash -= mach.cost;
 
-        // Put a machine in the user's cursor and let them place it somewhere in the gym.
-        var x = this.game.input.mousePointer.worldX;
-        var y = this.game.input.mousePointer.worldY;
-
         // Create a new machine and place it in the gym:
-        mach.pos = { x: x, y: y };
+        mach.pos = {
+            x: 2,
+            y: this.game.rnd.between(20, 500)
+        };
+        mach.id = this.game.rnd.uuid();
         var machineToAdd = new Machine(mach);
         this.gym.addToMachines(machineToAdd);
 

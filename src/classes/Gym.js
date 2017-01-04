@@ -4,6 +4,10 @@ import _ from 'underscore';
 import Clock from './Clock';
 import Customer from './Customer';
 
+// TODO:
+// * Make machines that dont look god awful.
+// * Make customer spritesheets with basic walking animation
+
 class Gym {
     constructor(startingCash, game, customerTypes) {
         this.cash = startingCash;
@@ -89,6 +93,7 @@ class Gym {
                 console.log(customerType);
 
                 this.customers.push(new Customer(
+                    this.game.rnd.uuid(),
                     'customer-'+this.customers.length,
                     Math.floor(Math.random() * (this.closingTime - 3 - this.openingTime + 1)) + this.openingTime,
                     this.customerTypes[customerType],

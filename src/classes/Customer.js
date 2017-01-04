@@ -10,13 +10,13 @@ import GymSession from './GymSession';
 
 class Customer {
     constructor(
+        id,
         name,
         timeWorkoutStarts,
         customerRoutine,
         customerType
     ) {
-        // TODO: use uuid package instead:
-        this.id = Math.floor((Math.random() * 100000) + 1);
+        this.id = id;
         this.name = name;
         this.dateJoined = new Date();
         this.customerRoutine = customerRoutine;
@@ -171,11 +171,9 @@ class Customer {
             this.resetCustomerSession(gym);
             // Create sprite:
             this.sprite = gym.game.add.sprite(gym.game.world.width / 2, gym.game.world.height, 'customer-1');
-
             this.sprite.inputEnabled = true;
             this.sprite.input.draggable = false;
             this.sprite.events.onInputDown.add(this.onClick, this);
-
             this.state.goToGym();
         }
     }
@@ -243,8 +241,9 @@ class Customer {
         } else if (r.status === 'FULL_LINE') {
             // Machine was found but the line is full.
             this.addThought('sad', 'long_lines_suck');
-            this.meters.boredom+= 80;
+            this.meters.boredom+= 150;
             console.log("[DEBUG] all lines for " + nextMachine + " are currently full");
+            this.moveToXY(gym.game.world.width / 2, gym.game.world.height / 2);
             this.state.waitForLinesToEmpty();
         } else {
             console.log("[DEBUG] " + this.name + " cannot find a " + nextMachine + " machine");
@@ -263,9 +262,10 @@ class Customer {
         if (curM.isCustomerFirstInLine(this) && curM.canFirstCustomerInLineUseMachine()) {
             curM.addNextCustomerToMachineUsers();
             // Move to machine:
+            // TODO: move to the middle of the machine
             this.moveToXY(
-                curM.sprite.x,
-                curM.sprite.y - (this.sprite.height) / 1.5
+                (curM.sprite.x + curM.sprite.width/2) - this.sprite.width/2,
+                (curM.sprite.y + curM.sprite.height/2) - this.sprite.height/2 //- (this.sprite.height) / 1.5
             );
             this.state.startUsingMachine();
         } else {
@@ -303,6 +303,8 @@ class Customer {
     //       That would allow users to line up in a line waiting. But for now showers are going to be magical
     //       and allow infinite people.
     processShoweringState(gym) {
+        // TODO: If they are already in the machine showering, then skip this step.
+        // Otherwise, the customers will go between multiple showers if more than one exist.
         var r = gym.findMachineForWorkout('shower');
 
         if (r === null || r.status === 'MISSING') {

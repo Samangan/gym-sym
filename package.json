@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/game.js",
   "dependencies": {
+    "hammerjs": "^2.0.8",
     "phaser-ce": "^2.7.1"
   },
   "devDependencies": {

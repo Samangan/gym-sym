@@ -1,8 +1,7 @@
 
 class Machine {
     constructor(m) {
-        // TODO: use uuid package instead:
-        this.id = Math.floor((Math.random() * 100000) + 1);
+        this.id = m.id;
         this.name = m.name;
         this.isRental = false;
         this.costToPurchase = m.cost;
