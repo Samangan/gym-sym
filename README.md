@@ -1,11 +1,9 @@
 
 # Gym-Sym
 
-< TODO insert gif screenshot >
-
 This is a small gym simulation game to learn phaser game engine, and to prototype a fun game loop for a fitness gym simulator.
 
-Go here: < TODO insert url> to play a version of the game
+Go [here](https://samangan.github.io/games/gym-sym/) to play a version of the game.
 
 ## Development
 
