@@ -6,7 +6,7 @@ class HUD {
     constructor(game) {
         this.game = game;
         this.init();
-        this.style = { font: "20px Orbitron", fill: "#c002b63", wordWrap: false, align: "center"};
+        this.style = { font: "20px Orbitron", fill: "white", wordWrap: false, align: "center"};
     }
 
     init() {

@@ -102,8 +102,28 @@ class CoreGame extends Phaser.State {
 
         this.game.hud.renderHUD(this.gym);
 
+        // TODO: Remove this for loop once I make the menu not a game state.
+        for (var i = 0; i < this.gym.machines.length; i++) {
+            var m = this.gym.machines[i];
+
+            if (!m.sprite || !m.sprite.visible) {
+                m.sprite = this.game.add.sprite(m.positionInGym.x, m.positionInGym.y, m.name);
+                this.game.physics.enable(m.sprite, Phaser.Physics.ARCADE);
+
+                // Register the onDragStop event with the new machine in the gym:
+                m.sprite.inputEnabled = true;
+                m.sprite.input.enableDrag(true);
+                m.sprite.events.onDragStop.add(this.onMachineDragStop, m);
+            }
+        }
+
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
+
+            if (c.sprite && !c.sprite.visible) {
+                // TODO: The menu shouldnt be a game state. So that I dont have to do this.
+                c.createSprite(this.gym, c.sprite.x, c.sprite.y);
+            }
 
             // TODO: Instead of destroying the sprite and recreating each time. Cant we just change the x,y vals of the sprite?
             if (c.isThinking && c.sprite) {
@@ -137,20 +157,6 @@ class CoreGame extends Phaser.State {
                         "\n" + "Current Action: " + c.state.current + "\n",
                     style
                 );
-            }
-        }
-
-        for (var i = 0; i < this.gym.machines.length; i++) {
-            var m = this.gym.machines[i];
-
-            if (!m.sprite || !m.sprite.visible) {
-                m.sprite = this.game.add.sprite(m.positionInGym.x, m.positionInGym.y, m.name);
-                this.game.physics.enable(m.sprite, Phaser.Physics.ARCADE);
-
-                // Register the onDragStop event with the new machine in the gym:
-                m.sprite.inputEnabled = true;
-                m.sprite.input.enableDrag(true);
-                m.sprite.events.onDragStop.add(this.onMachineDragStop, m);
             }
         }
     }

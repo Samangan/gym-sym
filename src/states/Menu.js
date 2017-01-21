@@ -1,7 +1,6 @@
 
 import Machine from '../classes/Machine';
 
-// BUG TODO: Using the menu makes the customer's sprites dissapear. D: lol..
 class Menu extends Phaser.State {
     preload() {
         this.game.load.image('store-background', 'assets/ui/store-background.png');

@@ -89,7 +89,6 @@ class Customer {
     }
 
     addThought(sentiment, thought) {
-        console.log("[DEBUG] " + this.name + " has new thought: " + thought);
         this.thoughts[sentiment][thought]++;
         this.thoughtBubbles.push(thought);
     }
@@ -160,32 +159,25 @@ class Customer {
         }
 
         if (this.removeFromGym) {
-            console.log("[DEBUG] " + this.name + ' is cancelling their subscription');
             gym.customers = _.without(gym.customers, _.findWhere(gym.customers, {
                 id: this.id
             }));
         }
 
         if (this.isTimeForWorkout(gym)) {
-            console.log("[DEBUG] " + this.name + " is going to gym");
             this.resetCustomerSession(gym);
             // Create sprite:
-            this.sprite = gym.game.add.sprite(gym.game.world.width / 2, gym.game.world.height, 'customer-1');
-            this.sprite.inputEnabled = true;
-            this.sprite.input.draggable = false;
-            this.sprite.events.onInputDown.add(this.onClick, this);
+            this.createSprite(gym, gym.game.world.width / 2, gym.game.world.height);
             this.state.goToGym();
         }
     }
 
     processIdleState(gym) {
         if (this.meters.social === 0) {
-            console.log("[DEBUG] " + this.name + " is starting to socialize");
             return this.state.startSocializing();
         }
 
         if (!gym.isOpen()) {
-            console.log("[DEBUG] Gym is closing. " + this.name + " is going home");
             this.addThought('sad', 'workout_not_finished');
             // Go home:
             this.moveToXY(gym.game.world.width / 2, gym.game.world.height);
@@ -193,15 +185,12 @@ class Customer {
         }
 
         if (this.currentSession.isMaxSessionTimeReached(gym.getDate())) {
-            console.log("[DEBUG] " + this.name + " reached max workout session time and is going home");
             this.addThought('sad', 'workout_not_finished');
             return this.state.leaveGym();
         }
 
         if (this.meters.boredom > 0 && this.meters.screenTouch > 0) {
-            // TODO: Make screentouching a state as well.
             // TODO: Animate the customer looking at their phone. Or make them get water or something.
-            console.log("[DEBUG] " + this.name + " is screen touching");
             var sign = Math.floor(Math.random()*2) == 1 ? 1 : -1;
             if (!this.isMoving) {
                 this.currentMovementSpeed = 100; // TODO: make this a param of moveToXY()
@@ -220,7 +209,6 @@ class Customer {
 
     processLookingForMachineState(gym) {
         if (this.isWorkoutOver()) {
-            console.log("[DEBUG] Workout over. " + this.name + " is going to shower.");
             if (this.currentSession.numMachinesSkipped === 0) {
                 this.addThought('happy', 'workout_finished'); // FUN_NOTE: THis might make the game too easy.
             }
@@ -234,7 +222,6 @@ class Customer {
 
         if (r.machine !== null && r.status === 'FOUND') {
             var m = r.machine;
-            console.log("[DEBUG] " + this.name + " is going to machine: " + m.name);
             m.addCustomerToLine(this);
             this.currentSession.currentMachine = m;
             this.state.queueUpForMachine();
@@ -242,11 +229,9 @@ class Customer {
             // Machine was found but the line is full.
             this.addThought('sad', 'long_lines_suck');
             this.meters.boredom+= 150;
-            console.log("[DEBUG] all lines for " + nextMachine + " are currently full");
             this.moveToXY(gym.game.world.width / 2, gym.game.world.height / 2);
             this.state.waitForLinesToEmpty();
         } else {
-            console.log("[DEBUG] " + this.name + " cannot find a " + nextMachine + " machine");
             // There is not currently a working machine of this type in the gym.
             this.currentSession.numMachinesSkipped++;
             this.addThought('sad', 'machine_not_available');
@@ -279,7 +264,6 @@ class Customer {
             }
 
             this.meters.boredom++;
-            console.log("[DEBUG] " + this.name + " is waiting in line for " + curM.name);
             // POST MVP TODO: Shift a little to indicate getting impatient with waiting in line.
         }
     }
@@ -287,13 +271,11 @@ class Customer {
     processWorkingOutState() {
         var curM = this.currentSession.currentMachine;
         if (this.currentSession.isDoneUsingMachine()){
-            console.log("[DEBUG] " + this.name + " is done using machine: " + curM.name);
             curM.removeCustomerFromMachineUsers(this);
             this.currentSession.useNextMachine();
             // Continue next workout:
             this.state.lookForMachine();
         } else {
-            console.log("[DEBUG] " + this.name + " is still using machine: " + curM.name);
             this.currentSession.useCurrentMachine();
         }
     }
@@ -319,7 +301,6 @@ class Customer {
             }
 
             if (this.meters.dirty === 0) {
-                console.log("[DEBUG] " + this.name + " has finished showering. Going home.");
                 this.state.leaveGym();
             } else  {
                 this.meters.dirty--;
@@ -375,6 +356,13 @@ class Customer {
 
     getSession() {
         return this.currentSession;
+    }
+
+    createSprite(gym, x, y) {
+        this.sprite = gym.game.add.sprite(x, y, 'customer-1');
+        this.sprite.inputEnabled = true;
+        this.sprite.input.draggable = false;
+        this.sprite.events.onInputDown.add(this.onClick, this);
     }
 
     onClick(s) {

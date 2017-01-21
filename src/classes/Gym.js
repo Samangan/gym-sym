@@ -68,7 +68,6 @@ class Gym {
 
     acquireNewCustomers() {
         var numNewCustomers = Math.round(this.fame * (this.getAvgCustomerHappiness() + 1) - this.membershipCost/10);
-        console.log('[DEBUG] newCustomers today: ' + numNewCustomers);
         this.dailyCustomerQueue.push(numNewCustomers);
 
         // if numNewCustomers is negative then remove that many customers (most unhappy first) instead of adding new customers.
