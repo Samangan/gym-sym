@@ -27,7 +27,7 @@ class HUD {
                 -5,
                 'machine-store-btn',
                 () => {
-                    this.game.state.start('menu');
+                    this.game.menu.openMachineStore();
                 },
                 this
             );

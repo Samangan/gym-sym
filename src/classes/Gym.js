@@ -31,7 +31,7 @@ class Gym {
         this.customers = [];
 
         // fame represents the gym's popularity (increases over time as more people join).
-        this.fame = 1;
+        this.fame = 3;
 
         // how many dollars per day it costs to use the gym.
         this.membershipCost = 7; // TODO: Should this be adjustable by the user?

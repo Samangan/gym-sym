@@ -1,36 +1,25 @@
 
-import Machine from '../classes/Machine';
+import Machine from './Machine';
 
-class Menu extends Phaser.State {
-    preload() {
-        this.game.load.image('store-background', 'assets/ui/store-background.png');
-        this.game.load.image('store-exit-btn', 'assets/ui/store-exit-btn.png');
-        this.game.load.json('machineStore', 'data/machines.json');
-    }
-
-    create() {
+class Menu {
+    constructor(gym, game) {
         this.titleStyle = { font: "40px Arial", fill: "#42bcf4", wordWrap: false, align: "center"};
         this.style = { font: "16px Arial", fill: "#42bcf4", wordWrap: false, align: "center"};
-
-        this.machineStore = this.game.cache.getJSON('machineStore');
-        this.gym = this.game.gym;
-        this.game.hud.renderHUD(this.gym);
-
-        // Right now we only have one menu.
-        this.openMachineStore();
+        this.gym = gym;
+        this.game = game;
+        this.machineStore = this.gym.game.cache.getJSON('machineStore');
+        this.menuItems = [];
     }
 
-    exit() {
-        this.game.state.start('coreGame');
-    }
-
-    // TODO:
-    // * Put the workoutLength, and maxConcurrentCustomers in the store.
+    // TODO: Put the workoutLength, and maxConcurrentCustomers in the store.
     openMachineStore() {
         var background = this.game.add.sprite(100, 100, 'store-background');
+        this.menuItems.push(background);
         var title = this.game.add.text(0, 0, 'Machine Store', this.titleStyle);
+        this.menuItems.push(title);
         title.alignTo(background, Phaser.TOP_CENTER, 1);
-        var exitButton = this.game.add.button(0, 0, 'store-exit-btn', this.exit, this);
+        var exitButton = this.game.add.button(0, 0, 'store-exit-btn', this.exitMenu, this);
+        this.menuItems.push(exitButton);
         exitButton.alignTo(background, Phaser.RIGHT_TOP, -45, 0);
 
         this.renderMachines(background);
@@ -54,11 +43,15 @@ class Menu extends Phaser.State {
 
     renderMachineBtn(x_offset, y_offset, name) {
         var machineSprite = this.game.add.sprite(this.game.camera.width / 2 - 300 + x_offset, this.game.camera.height / 6 + y_offset, name);
+        this.menuItems.push(machineSprite);
         var nameTxt = this.game.add.text(0, 0, name, this.style);
+        this.menuItems.push(nameTxt);
         nameTxt.alignTo(machineSprite, Phaser.TOP_CENTER, 1);
         var cost = this.game.add.text(0, 0, '$'+this.machineStore[name].cost+".00", this.style);
+        this.menuItems.push(cost);
         cost.alignTo(machineSprite, Phaser.RIGHT_TOP, 1);
         var purchase = this.game.add.text(0,0, 'Purchase', this.style);
+        this.menuItems.push(purchase);
         purchase.alignTo(machineSprite, Phaser.RIGHT_BOTTOM, 1);
 
         // Setup click handler to purchase this machine when purchase text is clicked:
@@ -85,7 +78,14 @@ class Menu extends Phaser.State {
         var machineToAdd = new Machine(mach);
         this.gym.addToMachines(machineToAdd);
 
-        this.exit();
+        this.exitMenu();
+    }
+
+    exitMenu() {
+        for (var i = 0; i < this.menuItems.length; i++) {
+            this.menuItems[i].destroy();
+        }
+        this.menuItems = [];
     }
 }
 

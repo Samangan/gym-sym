@@ -5,6 +5,7 @@ import Hammer from 'hammerjs';
 import Gym from '../classes/Gym';
 import Machine from '../classes/Machine';
 import HUD from '../HUD';
+import Menu from '../classes/Menu';
 
 class CoreGame extends Phaser.State {
     // TODO: Pan the camera with 'wasd'.
@@ -40,6 +41,12 @@ class CoreGame extends Phaser.State {
 
         // preload json data:
         this.game.load.json('customerTypes', 'data/customerTypes.json');
+
+        // Load menu:
+        this.game.load.image('store-background', 'assets/ui/store-background.png');
+        this.game.load.image('store-exit-btn', 'assets/ui/store-exit-btn.png');
+        this.game.load.json('machineStore', 'data/machines.json');
+
     }
 
     create() {
@@ -51,6 +58,8 @@ class CoreGame extends Phaser.State {
             this.gym = new Gym(35000, this.game, this.customerTypes);
             this.game.gym = this.gym;
         }
+
+        this.game.menu = new Menu(this.gym, this.game);
 
         // Every 1/100 seconds is 1 in-game minute:
         this.game.time.events.loop(Phaser.Timer.SECOND / 100, this.gym.tickClock, this.gym);
@@ -98,11 +107,8 @@ class CoreGame extends Phaser.State {
     }
 
     render() {
-        //this.game.debug.cameraInfo(game.camera, game.camera.width - 300, game.camera.height - 100);
-
         this.game.hud.renderHUD(this.gym);
 
-        // TODO: Remove this for loop once I make the menu not a game state.
         for (var i = 0; i < this.gym.machines.length; i++) {
             var m = this.gym.machines[i];
 
@@ -119,11 +125,6 @@ class CoreGame extends Phaser.State {
 
         for (var i = 0; i < this.gym.customers.length; i++) {
             var c = this.gym.customers[i];
-
-            if (c.sprite && !c.sprite.visible) {
-                // TODO: The menu shouldnt be a game state. So that I dont have to do this.
-                c.createSprite(this.gym, c.sprite.x, c.sprite.y);
-            }
 
             // TODO: Instead of destroying the sprite and recreating each time. Cant we just change the x,y vals of the sprite?
             if (c.isThinking && c.sprite) {

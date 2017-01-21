@@ -3,7 +3,6 @@ import 'p2';
 
 import Phaser from 'phaser';
 import CoreGame from './states/CoreGame';
-import Menu from './states/Menu';
 import GameOver from './states/GameOver';
 
 class Game extends Phaser.Game {
@@ -13,9 +12,7 @@ class Game extends Phaser.Game {
 
         super(width, height, Phaser.AUTO, 'content');
         this.state.add('coreGame', CoreGame, false);
-        this.state.add('menu', Menu, false, false);
         this.state.add('gameOver', GameOver, false);
-
         this.state.start('coreGame');
     }
 }
