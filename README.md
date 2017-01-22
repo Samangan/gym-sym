@@ -1,6 +1,8 @@
 
 # Gym-Sym
 
+![Gym-Sym Screen](https://samangan.github.io/images/games/gym-sym-screen.png "Gym-Sym Screen")
+
 This is a small gym simulation game to learn phaser game engine, and to prototype a fun game loop for a fitness gym simulator.
 
 Go [here](https://samangan.github.io/games/gym-sym/) to play a version of the game.

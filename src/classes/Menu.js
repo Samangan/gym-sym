@@ -3,7 +3,7 @@ import Machine from './Machine';
 
 class Menu {
     constructor(gym, game) {
-        this.titleStyle = { font: "40px Arial", fill: "#42bcf4", wordWrap: false, align: "center"};
+        this.titleStyle = { font: "40px Arial", fill: "#fffffff", wordWrap: false, align: "center"};
         this.style = { font: "16px Arial", fill: "#42bcf4", wordWrap: false, align: "center"};
         this.gym = gym;
         this.game = game;
